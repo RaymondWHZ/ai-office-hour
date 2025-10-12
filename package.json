@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "lint": "oxlint ."
   },
   "dependencies": {
     "@astrojs/svelte": "^7.2.0",
@@ -15,5 +16,8 @@
     "svelte": "^5.39.11",
     "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "oxlint": "^1.22.0"
   }
 }
