@@ -8,8 +8,9 @@
     "preview": "astro preview",
     "astro": "astro",
     "lint": "oxlint .",
-    "format:check": "prettier . --check",
     "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "type:check": "tsgo --noEmit --skipLibCheck",
     "check": "prettier . --check && oxlint . && tsgo --noEmit --skipLibCheck"
   },
   "dependencies": {
