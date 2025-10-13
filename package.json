@@ -9,15 +9,24 @@
     "astro": "astro",
     "lint": "oxlint .",
     "format:check": "prettier . --check",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "check": "prettier . --check && oxlint . && tsgo --noEmit --skipLibCheck"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.52",
+    "@ai-sdk/svelte": "^3.0.68",
     "@astrojs/svelte": "^7.2.0",
+    "@cartamd/plugin-math": "^4.3.1",
     "@tailwindcss/vite": "^4.1.14",
+    "@typescript/native-preview": "^7.0.0-dev.20251013.1",
+    "ai": "^5.0.68",
     "astro": "^5.14.4",
+    "carta-md": "^4.11.1",
+    "katex": "^0.16.25",
     "svelte": "^5.39.11",
     "tailwindcss": "^4.1.14",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@prettier/plugin-oxc": "^0.0.4",
