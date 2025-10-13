@@ -1,43 +1,72 @@
-# Astro Starter Kit: Minimal
+# 🪄 AI Office Hour
 
-```sh
-bun create astro@latest -- --template minimal
+An AI-powered tutoring assistant that helps students understand academic problems through interactive conversation and live document editing. Instead of simply providing answers, AI Office Hour acts as a patient mentor, guiding students to discover solutions through thoughtful questions and annotations.
+
+## Tech Stack
+
+- **Framework**: [Astro 5](https://astro.build) + [Svelte 5](https://svelte.dev) (with runes mode)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com)
+- **AI SDK**: [Vercel AI SDK](https://sdk.vercel.ai) with Claude integration
+- **Linting**: [oxlint](https://oxc.rs)
+- **Formatting**: [Prettier](https://prettier.io) with oxc plugin
+- **Type-Check** [typescript-go](https://github.com/microsoft/typescript-go) (Experimental)
+
+## Prerequisites
+
+- Install [Node.js](https://nodejs.org) as runtime
+- Install [Bun](https://bun.sh) as package manager
+- Obtain a Claude API Key ([get one here](https://console.anthropic.com))
+
+## Getting Started
+
+### 1. Clone the repository
+
+HTTP:
+
+```bash
+git clone https://github.com/tailwindlabs/tailwindcss-typography.git
+cd ai-office-hour
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+You may instead SSH or GitHub CLI for this step.
 
-## 🚀 Project Structure
+### 2. Install dependencies
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+bun install
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+### 3. Set up environment variables
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Create a `.env` file in the root directory:
 
-Any static assets, like images, can be placed in the `public/` directory.
+```bash
+CLAUDE_API_KEY=your_api_key_here
+```
 
-## 🧞 Commands
+### 4. Start the development server
 
-All commands are run from the root of the project, from a terminal:
+```bash
+bun run dev
+```
 
-| Command               | Action                                           |
-| :-------------------- | :----------------------------------------------- |
-| `bun install`         | Installs dependencies                            |
-| `bun dev`             | Starts local dev server at `localhost:4321`      |
-| `bun build`           | Build your production site to `./dist/`          |
-| `bun preview`         | Preview your build locally, before deploying     |
-| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun astro -- --help` | Get help using the Astro CLI                     |
+Open [http://localhost:4321](http://localhost:4321) in your browser.
 
-## 👀 Want to learn more?
+## Available Custom Commands
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+All commands are run from the root of the project:
+
+| Command                | Action                                          |
+| :--------------------- | :---------------------------------------------- |
+| `bun run dev`          | Start local dev server at `localhost:4321`      |
+| `bun run build`        | Build production site to `./dist/`              |
+| `bun run preview`      | Preview production build locally                |
+| `bun run lint`         | Run oxlint to check code quality                |
+| `bun run format`       | Format code with Prettier                       |
+| `bun run format:check` | Check if code is properly formatted             |
+| `bun run type:check`   | Run TypeScript type checking                    |
+| `bun run check`        | Run format check, lint, and type check together |
+
+## Deployment
+
+This project is still under development and not tested for deployment yet.
