@@ -14,11 +14,18 @@
     "check": "prettier . --check && oxlint . && tsgo --noEmit --skipLibCheck"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.27",
     "@ai-sdk/openai": "^2.0.52",
     "@ai-sdk/svelte": "^3.0.68",
     "@astrojs/svelte": "^7.2.0",
+    "@cartamd/plugin-code": "^4.2.0",
     "@cartamd/plugin-math": "^4.3.1",
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.14",
+    "@tiptap/core": "^3.6.6",
+    "@tiptap/extension-bubble-menu": "^3.6.6",
+    "@tiptap/pm": "^3.6.6",
+    "@tiptap/starter-kit": "^3.6.6",
     "@typescript/native-preview": "^7.0.0-dev.20251013.1",
     "ai": "^5.0.68",
     "astro": "^5.14.4",
