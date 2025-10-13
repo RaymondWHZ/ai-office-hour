@@ -21,14 +21,14 @@ An AI-powered tutoring assistant that helps students understand academic problem
 
 ### 1. Clone the repository
 
-HTTP:
+Standard HTTP method:
 
 ```bash
 git clone https://github.com/tailwindlabs/tailwindcss-typography.git
 cd ai-office-hour
 ```
 
-You may instead SSH or GitHub CLI for this step.
+You may also use SSH or GitHub CLI methods for this step instead.
 
 ### 2. Install dependencies
 
