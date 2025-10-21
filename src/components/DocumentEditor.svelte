@@ -10,12 +10,16 @@
     value?: string;
   }
 
-  let { value = $bindable() }: Props = $props();
+  let { value = $bindable("") }: Props = $props();
 
+  // References for DOM elements to use
   let bubbleMenu = $state<HTMLElement>();
   let element = $state<HTMLElement>();
+
+  // State to hold the editor instance
   let editorState = $state<{ editor: Editor | null }>({ editor: null });
 
+  // Initialize the editor on component mount
   onMount(() => {
     editorState.editor = new Editor({
       element: element,
@@ -67,6 +71,7 @@
       },
       content: value,
       onCreate: ({ editor: currentEditor }) => {
+        // Migrate $$ math strings to math nodes
         migrateMathStrings(currentEditor);
       },
       onTransaction: ({ editor }) => {
@@ -78,6 +83,15 @@
       },
     });
   });
+
+  // Sync external value changes to the editor content
+  $effect(() => {
+    if (editorState.editor && value !== editorState.editor.getHTML()) {
+      editorState.editor.commands.setContent(value);
+    }
+  });
+
+  // Clean up the editor instance on component destroy
   onDestroy(() => {
     editorState.editor?.destroy();
   });
@@ -86,102 +100,61 @@
 <div class="relative max-h-full p-6">
   {#if editorState.editor}
     <div class="mb-12">
-      <button
-        class="rounded px-2 hover:bg-gray-200"
-        onclick={() =>
-          editorState.editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-        class:active={editorState.editor.isActive("heading", { level: 1 })}
-      >
-        H1
-      </button>
-      <button
-        class="rounded px-2 hover:bg-gray-200"
-        onclick={() =>
-          editorState.editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-        class:active={editorState.editor.isActive("heading", { level: 2 })}
-      >
-        H2
-      </button>
-      <button
-        class="rounded px-2 hover:bg-gray-200"
-        onclick={() =>
-          editorState.editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-        class:active={editorState.editor.isActive("heading", { level: 3 })}
-      >
-        H3
-      </button>
+      {#snippet nodeButton(
+        title: string,
+        name: string,
+        attributes?: Record<string, any>,
+      )}
+        <button
+          class={`rounded px-1.5 ${editorState.editor?.isActive(name, attributes) ? "bg-black text-white" : "hover:bg-gray-200"}`}
+          onclick={() =>
+            editorState.editor
+              ?.chain()
+              .focus()
+              .toggleNode(name, "paragraph", attributes)
+              .run()}
+        >
+          {title}
+        </button>
+      {/snippet}
+
+      {@render nodeButton("H1", "heading", { level: 1 })}
+      {@render nodeButton("H2", "heading", { level: 2 })}
+      {@render nodeButton("H3", "heading", { level: 3 })}
     </div>
   {/if}
 
-  <div class="bubble-menu" bind:this={bubbleMenu}>
+  <div
+    class="transition-visibility invisible absolute flex rounded bg-black p-1 transition-opacity"
+    bind:this={bubbleMenu}
+  >
     {#if editorState.editor}
-      <button
-        onclick={() => editorState.editor?.chain().focus().toggleBold().run()}
-        class:active={editorState.editor.isActive("bold")}
-      >
-        Bold
-      </button>
-      <button
-        onclick={() => editorState.editor?.chain().focus().toggleItalic().run()}
-        class:active={editorState.editor.isActive("italic")}
-      >
-        Italic
-      </button>
-      <button
-        onclick={() => editorState.editor?.chain().focus().toggleStrike().run()}
-        class:active={editorState.editor.isActive("strike")}
-      >
-        Strike
-      </button>
-      <button
-        onclick={() => editorState.editor?.chain().focus().toggleCode().run()}
-        class:active={editorState.editor.isActive("code")}
-      >
-        Code
-      </button>
-      <button
-        onclick={() =>
-          editorState.editor?.chain().focus().toggleHighlight().run()}
-        class:active={editorState.editor.isActive("highlight")}
-      >
-        Highlight
-      </button>
+      {#snippet markButton(
+        title: string,
+        name: string,
+        attributes?: Record<string, any>,
+      )}
+        <button
+          class={`m-0 px-1 font-medium text-white opacity-60 ${editorState.editor?.isActive(name, attributes) ? "opacity-100" : "hover:opacity-100"}`}
+          onclick={() =>
+            editorState.editor
+              ?.chain()
+              .focus()
+              .toggleMark(name, attributes)
+              .run()}
+          class:active={editorState.editor?.isActive(name, attributes)}
+        >
+          {title}
+        </button>
+      {/snippet}
+
+      {@render markButton("Bold", "bold")}
+      {@render markButton("Italic", "italic")}
+      {@render markButton("Strike", "strike")}
+      {@render markButton("Code", "code")}
+      {@render markButton("Highlight", "highlight")}
     {/if}
   </div>
 
   <div class="h-full" bind:this={element}></div>
 </div>
-
-<style lang="css">
-  button.active {
-    background: black;
-    color: white;
-  }
-
-  .bubble-menu {
-    visibility: hidden;
-    position: absolute;
-    display: flex;
-    background-color: #0d0d0d;
-    padding: 0.2rem;
-    border-radius: 0.5rem;
-    transition:
-      visibility 0.1s ease,
-      opacity 0.1s ease;
-  }
-
-  .bubble-menu button {
-    border: none;
-    background: none;
-    color: #fff;
-    font-weight: 500;
-    padding: 0 0.2rem;
-    opacity: 0.6;
-    margin: 0;
-  }
-
-  .bubble-menu button:hover,
-  .bubble-menu button.active {
-    opacity: 1;
-  }
-</style>
