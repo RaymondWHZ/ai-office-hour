@@ -1,9 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { Message } from "../types/ai";
+  import type { Message } from "../../types/ai";
   import LoadingIndicator from "./LoadingIndicator.svelte";
   import ErrorMessage from "./ErrorMessage.svelte";
-  import { Markdown } from "carta-md";
   import TAResponseRenderer from "./TAResponseRenderer.svelte";
 
   interface Props {

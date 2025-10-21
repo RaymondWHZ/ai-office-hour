@@ -1,9 +1,9 @@
 <script lang="ts">
-  import ChatPanel from "./ChatPanel.svelte";
+  import ChatPanel from "./chat/ChatPanel.svelte";
   import type { Message, AIResponse } from "../types/ai";
   import { applyEdits } from "../lib/documentEditor";
   import { SAMPLE_CONTENT } from "../lib/sampleContent";
-  import DocumentEditor from "./DocumentEditor.svelte";
+  import DocumentEditor from "./document/DocumentEditor.svelte";
 
   let documentContent = $state(SAMPLE_CONTENT);
   let chatHistory = $state<Message[]>([]);

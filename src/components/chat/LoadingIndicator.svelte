@@ -4,14 +4,3 @@
   ></div>
   <p class="m-0 text-sm text-gray-600">AI is thinking...</p>
 </div>
-
-<style>
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-</style>
