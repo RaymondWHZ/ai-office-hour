@@ -97,7 +97,7 @@
   });
 </script>
 
-<div class="relative max-h-full p-6">
+<div class="relative h-full p-6">
   {#if editorState.editor}
     <div class="mb-12">
       {#snippet nodeButton(
