@@ -17,16 +17,21 @@ export const POST: APIRoute = async ({ request }) => {
     const { documentContent, userQuestion, chatHistory } = validatedRequest;
 
     // Construct the user message with document context
-    const userMessage = `Document Content (Student is facing this question, not that they asked this question):
+    const userMessage = `
+
+Current Document Content:
+
 \`\`\`
 ${documentContent}
 \`\`\`
 
-Student Question (what they actually just asked): ${userQuestion}`;
+Student Newest Question: ${userQuestion}
 
-    // Call OpenAI API using Vercel AI SDK
+`;
+
+    // Call AI API using Vercel AI SDK
     const { object } = await generateObject({
-      model: anthropic("claude-sonnet-4-5"),
+      model: anthropic("claude-haiku-4-5"),
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         ...chatHistory,
