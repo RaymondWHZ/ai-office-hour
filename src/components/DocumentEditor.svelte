@@ -2,6 +2,8 @@
   import { onMount, onDestroy } from "svelte";
   import { Editor } from "@tiptap/core";
   import { StarterKit } from "@tiptap/starter-kit";
+  import Highlight from "@tiptap/extension-highlight";
+  import Math, { migrateMathStrings } from "@tiptap/extension-mathematics";
   import BubbleMenu from "@tiptap/extension-bubble-menu";
 
   interface Props {
@@ -19,6 +21,41 @@
       element: element,
       extensions: [
         StarterKit,
+        Highlight,
+        Math.configure({
+          blockOptions: {
+            onClick: (node, pos) => {
+              const newCalculation = prompt(
+                "Enter new calculation:",
+                node.attrs.latex,
+              );
+              if (newCalculation) {
+                editorState.editor
+                  ?.chain()
+                  .setNodeSelection(pos)
+                  .updateBlockMath({ latex: newCalculation })
+                  .focus()
+                  .run();
+              }
+            },
+          },
+          inlineOptions: {
+            onClick: (node, pos) => {
+              const newCalculation = prompt(
+                "Enter new calculation:",
+                node.attrs.latex,
+              );
+              if (newCalculation) {
+                editorState.editor
+                  ?.chain()
+                  .setNodeSelection(pos)
+                  .updateInlineMath({ latex: newCalculation })
+                  .focus()
+                  .run();
+              }
+            },
+          },
+        }),
         BubbleMenu.configure({
           element: bubbleMenu,
         }),
@@ -29,6 +66,9 @@
         },
       },
       content: value,
+      onCreate: ({ editor: currentEditor }) => {
+        migrateMathStrings(currentEditor);
+      },
       onTransaction: ({ editor }) => {
         // Update the bound value whenever the editor content changes
         value = editor.getHTML();
@@ -62,6 +102,14 @@
       >
         H2
       </button>
+      <button
+        class="rounded px-2 hover:bg-gray-200"
+        onclick={() =>
+          editorState.editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+        class:active={editorState.editor.isActive("heading", { level: 3 })}
+      >
+        H3
+      </button>
     </div>
   {/if}
 
@@ -84,6 +132,19 @@
         class:active={editorState.editor.isActive("strike")}
       >
         Strike
+      </button>
+      <button
+        onclick={() => editorState.editor?.chain().focus().toggleCode().run()}
+        class:active={editorState.editor.isActive("code")}
+      >
+        Code
+      </button>
+      <button
+        onclick={() =>
+          editorState.editor?.chain().focus().toggleHighlight().run()}
+        class:active={editorState.editor.isActive("highlight")}
+      >
+        Highlight
       </button>
     {/if}
   </div>
