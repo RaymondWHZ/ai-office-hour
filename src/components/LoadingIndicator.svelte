@@ -1,8 +1,8 @@
 <div class="flex items-center gap-3 p-3">
   <div
-    class="size-5 border-[3px] border-gray-200 border-t-blue-500 rounded-full animate-spin"
+    class="size-5 animate-spin rounded-full border-[3px] border-gray-200 border-t-blue-500"
   ></div>
-  <p class="text-sm text-gray-600 m-0">AI is thinking...</p>
+  <p class="m-0 text-sm text-gray-600">AI is thinking...</p>
 </div>
 
 <style>

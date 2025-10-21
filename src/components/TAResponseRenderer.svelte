@@ -16,7 +16,7 @@
   });
 </script>
 
-<div class="h-full flex flex-col items-stretch justify-stretch">
+<div class="flex h-full flex-col items-stretch justify-stretch">
   {#if carta}
     <Markdown {carta} {value} />
   {/if}

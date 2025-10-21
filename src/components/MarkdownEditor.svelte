@@ -22,7 +22,7 @@
   });
 </script>
 
-<div class="flex flex-col items-stretch justify-stretch size-full">
+<div class="flex size-full flex-col items-stretch justify-stretch">
   {#if carta}
     <CartaEditor
       theme="default"
