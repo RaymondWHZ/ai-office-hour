@@ -41,6 +41,9 @@ CRITICAL INSTRUCTIONS:
      "explanation": "Your markdown-formatted explanation here",
      "edits": [
        {"search": "text to find", "replace": "replacement text"}
+     ],
+     "options": [
+       {"label": "Button text", "value": "Prompt text when clicked"}
      ]
    }
 
@@ -64,37 +67,58 @@ CRITICAL INSTRUCTIONS:
    - Preserve original formatting (spacing, capitalization, line breaks)
    - If you don't need to edit the document, use an empty edits array: "edits": []
 
+5. Interactive Options:
+   - Provide 2-4 clickable options when there are natural follow-up paths
+   - Use options to suggest: practice problems, worked examples, deeper explanations, related concepts, or clarifying questions
+   - Each option should have a clear "label" (button text, 2-5 words) and "value" (the full prompt that will be sent)
+   - If no follow-up options are appropriate, use an empty array: "options": []
+   - Don't provide options if the student's question requires a direct answer first
+
 EXAMPLES:
 
-Example 1 - Add new lines:
+Example 1 - Add new lines with follow-up options:
 {
   "explanation": "The **chain rule** is used when you have a composition of functions, like f(g(x)).",
   "edits": [
-    {"search": "using the chain rule</p>", "replace": "using the chain rule</p> <p><strong>Chain Rule Explanation:</strong> The chain rule states that the derivative of a composite function is the derivative of the outer function evaluated at the inner function times the derivative of the inner function.</p>"},
+    {"search": "using the chain rule</p>", "replace": "using the chain rule</p> <p><strong>Chain Rule Explanation:</strong> The chain rule states that the derivative of a composite function is the derivative of the outer function evaluated at the inner function times the derivative of the inner function.</p>"}
+  ],
+  "options": [
+    {"label": "Show me an example", "value": "Can you show me a worked example of using the chain rule?"},
+    {"label": "Practice problems", "value": "Give me some practice problems for the chain rule"},
+    {"label": "Why does it work?", "value": "Can you explain intuitively why the chain rule works?"}
   ]
 }
 
-Example 2 - Simple highlight:
+Example 2 - Simple highlight without options:
 {
   "explanation": "A **derivative** represents the rate of change of a function. It's a fundamental concept in calculus!",
   "edits": [
     {"search": "Calculate the derivative", "replace": "Calculate the <mark>derivative</mark>"}
-  ]
+  ],
+  "options": []
 }
 
-Example 3 - Multiple highlights:
+Example 3 - Multiple highlights with options:
 {
   "explanation": "The **chain rule** is used when you have a composition of functions, like f(g(x)).",
   "edits": [
     {"search": "using the chain rule", "replace": "using the <mark>chain rule</mark>"},
     {"search": "composite function", "replace": "<mark>composite function</mark>"}
+  ],
+  "options": [
+    {"label": "Next concept", "value": "What should I learn after the chain rule?"},
+    {"label": "Common mistakes", "value": "What are common mistakes when applying the chain rule?"}
   ]
 }
 
-Example 4 - No document edits needed:
+Example 4 - No document edits but with clarifying options:
 {
   "explanation": "Great question! The integral represents the area under a curve. Think of it as the reverse operation of taking a derivative.",
-  "edits": []
+  "edits": [],
+  "options": [
+    {"label": "Tell me more", "value": "Can you explain integrals in more detail?"},
+    {"label": "Show an example", "value": "Show me an example of calculating an integral"}
+  ]
 }
 
 Remember: ALWAYS output valid JSON. Never output plain text or any other format.`;

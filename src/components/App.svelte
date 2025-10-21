@@ -59,6 +59,7 @@
       const assistantMessage: Message = {
         role: "assistant",
         content: aiResponse.explanation,
+        options: aiResponse.options,
       };
       chatHistory = [...chatHistory, assistantMessage];
     } catch (err) {

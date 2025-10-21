@@ -40,6 +40,12 @@
     }
   }
 
+  function handleOptionClick(value: string) {
+    if (!isLoading) {
+      onsend(value);
+    }
+  }
+
   // Auto-scroll to bottom when new messages arrive
   $effect(() => {
     if (messagesContainer && messages.length > 0) {
@@ -71,7 +77,10 @@
       </div>
     {/if}
 
-    {#each messages as message}
+    {#each messages as message, index}
+      {@const isLastAssistantMessage =
+        message.role === "assistant" &&
+        index === messages.findLastIndex((m) => m.role === "assistant")}
       <div class="flex flex-col gap-2">
         <div
           class="text-xs font-semibold tracking-wide uppercase {message.role ===
@@ -92,6 +101,19 @@
             <TAResponseRenderer value={message.content} />
           {/if}
         </div>
+        {#if message.role === "assistant" && message.options && message.options.length > 0}
+          <div class="mt-3 flex flex-wrap gap-2">
+            {#each message.options as option}
+              <button
+                onclick={() => handleOptionClick(option.value)}
+                disabled={isLoading || !isLastAssistantMessage}
+                class="cursor-pointer rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {option.label}
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
     {/each}
 
