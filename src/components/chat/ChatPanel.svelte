@@ -70,10 +70,45 @@
     {/if}
 
     {#if messages.length === 0 && !error}
-      <div
-        class="flex h-full items-center justify-center text-sm text-gray-400"
-      >
-        <p class="m-0">Ask a question about your assignment!</p>
+      <div class="flex h-full flex-col items-center justify-center gap-6 px-6">
+        <div class="text-center">
+          <p class="m-0 mb-2 text-lg font-semibold text-gray-700">
+            How would you like to start?
+          </p>
+          <p class="m-0 text-sm text-gray-500">
+            Choose a learning style to begin exploring your assignment
+          </p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <button
+            onclick={() =>
+              handleOptionClick(
+                "I'd like a walkthrough of the document. Please guide me through the key concepts and help me understand what I need to learn step by step.",
+              )}
+            disabled={isLoading}
+            class="flex cursor-pointer flex-col items-start gap-2 rounded-lg border-2 border-blue-200 bg-blue-50 px-6 py-4 text-left transition-all hover:border-blue-400 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span class="text-lg font-semibold text-blue-700">Walkthrough</span>
+            <span class="text-sm text-blue-600"
+              >Guided explanation of concepts</span
+            >
+          </button>
+          <button
+            onclick={() =>
+              handleOptionClick(
+                "I'd like to test my understanding with quiz-style questions. Please assess what I know and help me practice the concepts in this document.",
+              )}
+            disabled={isLoading}
+            class="flex cursor-pointer flex-col items-start gap-2 rounded-lg border-2 border-emerald-200 bg-emerald-50 px-6 py-4 text-left transition-all hover:border-emerald-400 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span class="text-lg font-semibold text-emerald-700"
+              >Quiz Style</span
+            >
+            <span class="text-sm text-emerald-600"
+              >Test knowledge with questions</span
+            >
+          </button>
+        </div>
       </div>
     {/if}
 
