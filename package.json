@@ -10,8 +10,7 @@
     "lint": "oxlint .",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "typecheck": "tsgo --noEmit --skipLibCheck",
-    "check": "prettier . --check && oxlint . && tsgo --noEmit --skipLibCheck"
+    "check": "oxlint . && astro check && svelte-check && prettier . --check"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.27",
@@ -34,13 +33,14 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@astrojs/check": "0.9.5",
     "@prettier/plugin-oxc": "0.0.4",
-    "@typescript/native-preview": "7.0.0-dev.20251013.1",
     "oxlint": "1.22.0",
     "prettier": "3.6.2",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-svelte": "3.4.0",
     "prettier-plugin-tailwindcss": "0.7.1",
+    "svelte-check": "4.3.3",
     "typescript": "5.9.3"
   }
 }
