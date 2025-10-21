@@ -1,11 +1,9 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import MarkdownEditor from "./MarkdownEditor.svelte";
   import ChatPanel from "./ChatPanel.svelte";
   import type { Message, AIResponse } from "../types/ai";
   import { applyEdits } from "../lib/documentEditor";
   import { SAMPLE_CONTENT } from "../lib/sampleContent";
-  import TipTap from "./TipTap.svelte";
+  import DocumentEditor from "./DocumentEditor.svelte";
 
   let documentContent = $state(SAMPLE_CONTENT);
   let chatHistory = $state<Message[]>([]);
@@ -97,8 +95,8 @@
         </h2>
       </div>
       <div class="flex-1 overflow-hidden">
-        <MarkdownEditor bind:value={documentContent} />
-        <!-- <TipTap /> -->
+        <!-- <MarkdownEditor bind:value={documentContent} /> -->
+        <DocumentEditor bind:value={documentContent} />
       </div>
     </div>
 
