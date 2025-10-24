@@ -130,15 +130,15 @@
             ? 'max-w-[80%] self-start bg-indigo-50 text-indigo-950'
             : 'border border-gray-200 bg-white text-gray-800'}"
         >
-          {#if message.role === "user"}
-            {message.content}
+          {#if message.role === "assistant"}
+            <TAResponseRenderer value={message.content.explanation} />
           {:else}
-            <TAResponseRenderer value={message.content} />
+            {message.content}
           {/if}
         </div>
-        {#if message.role === "assistant" && message.options && message.options.length > 0}
+        {#if message.role === "assistant" && message.content.options && message.content.options.length > 0}
           <div class="mt-3 flex flex-wrap gap-2">
-            {#each message.options as option}
+            {#each message.content.options as option}
               <button
                 onclick={() => handleOptionClick(option.value)}
                 disabled={isLoading || !isLastAssistantMessage}

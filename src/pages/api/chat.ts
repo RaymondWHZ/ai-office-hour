@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { generateObject } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { ChatRequestSchema, AIResponseSchema } from "../../types/ai";
+import { chatRequestSchema, aiResponseSchema } from "../../types/ai";
 import { SYSTEM_PROMPT } from "../../lib/prompts";
 
 const anthropic = createAnthropic({
@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     // Parse and validate request body
     const body = await request.json();
-    const validatedRequest = ChatRequestSchema.parse(body);
+    const validatedRequest = chatRequestSchema.parse(body);
 
     const { documentContent, userQuestion, chatHistory } = validatedRequest;
 
@@ -29,16 +29,27 @@ Student Newest Question: ${userQuestion}
 
 `;
 
+    const transformedChatHistory = chatHistory.map((message) =>
+      message.role === "assistant"
+        ? {
+            role: "assistant" as const,
+            content:
+              "Previous output in json format: " +
+              JSON.stringify(message.content),
+          }
+        : message,
+    );
+
     // Call AI API using Vercel AI SDK
     const { object } = await generateObject({
       model: anthropic("claude-haiku-4-5"),
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        ...chatHistory,
+        ...transformedChatHistory,
         { role: "user", content: userMessage },
       ],
       temperature: 0.7,
-      schema: AIResponseSchema,
+      schema: aiResponseSchema,
     });
 
     // Return the structured response

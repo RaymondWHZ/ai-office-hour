@@ -58,8 +58,7 @@
       // Add AI explanation to chat
       const assistantMessage: Message = {
         role: "assistant",
-        content: aiResponse.explanation,
-        options: aiResponse.options,
+        content: aiResponse,
       };
       chatHistory = [...chatHistory, assistantMessage];
     } catch (err) {
