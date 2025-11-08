@@ -1,38 +1,71 @@
-# sv
+# 🪄 AI Office Hour
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+An AI-powered tutoring assistant that helps students understand academic problems through interactive conversation and live document editing. Instead of simply providing answers, AI Office Hour acts as a patient mentor, guiding students to discover solutions through thoughtful questions and annotations.
 
-## Creating a project
+## Tech Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **Framework**: [Svelte 5](https://svelte.dev) (with runes mode)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com)
+- **AI SDK**: [Vercel AI SDK](https://sdk.vercel.ai) with Claude integration
+- **Linting**: [oxlint](https://oxc.rs)
+- **Formatting**: [Prettier](https://prettier.io) with oxc plugin
 
-```sh
-# create a new project in the current directory
-npx sv create
+## Prerequisites
 
-# create a new project in my-app
-npx sv create my-app
+- Install [Node.js](https://nodejs.org) as runtime
+- Install [Bun](https://bun.sh) as package manager
+- Obtain a Claude API Key ([get one here](https://console.anthropic.com))
+
+## Getting Started
+
+### 1. Clone the repository
+
+Standard HTTP method:
+
+```bash
+git clone https://github.com/tailwindlabs/tailwindcss-typography.git
+cd ai-office-hour
 ```
 
-## Developing
+You may also use SSH or GitHub CLI methods for this step instead.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### 2. Install dependencies
 
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```bash
+bun install
 ```
 
-## Building
+### 3. Set up environment variables
 
-To create a production version of your app:
+Create a `.env` file in the root directory:
 
-```sh
-npm run build
+```bash
+CLAUDE_API_KEY=your_api_key_here
 ```
 
-You can preview the production build with `npm run preview`.
+### 4. Start the development server
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+bun run dev
+```
+
+Open [http://localhost:4321](http://localhost:4321) in your browser.
+
+## Available Custom Commands
+
+All commands are run from the root of the project:
+
+| Command                | Action                                          |
+| :--------------------- | :---------------------------------------------- |
+| `bun run dev`          | Start local dev server at `localhost:4321`      |
+| `bun run build`        | Build production site to `./dist/`              |
+| `bun run preview`      | Preview production build locally                |
+| `bun run check:format` | Check if code is properly formatted             |
+| `bun run check:type`   | Run TypeScript type checking                    |
+| `bun run lint`         | Run oxlint to check code quality                |
+| `bun run check`        | Run format check, lint, and type check together |
+| `bun run format`       | Format code with Prettier                       |
+
+## Deployment
+
+This project is still under development and not tested for deployment yet.
