@@ -3,7 +3,11 @@
  * @type {import("prettier").Config}
  */
 const config = {
-  plugins: ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
+  plugins: [
+    "@prettier/plugin-oxc",
+    "prettier-plugin-svelte",
+    "prettier-plugin-tailwindcss",
+  ],
   overrides: [
     {
       files: "*.svelte",
