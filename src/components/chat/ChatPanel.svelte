@@ -2,8 +2,13 @@
   import { onMount } from "svelte";
   import type { Message } from "../../types/ai";
   import LoadingIndicator from "./LoadingIndicator.svelte";
-  import ErrorMessage from "./ErrorMessage.svelte";
   import TAResponseRenderer from "./TAResponseRenderer.svelte";
+  import { Textarea } from "$lib/components/ui/textarea";
+  import { Button } from "$lib/components/ui/button";
+  import { Card } from "$lib/components/ui/card";
+  import * as Alert from "$lib/components/ui/alert";
+  import { XIcon } from "@lucide/svelte";
+  import { Loader } from "$lib/components/ui/loader";
 
   interface Props {
     messages: Message[];
@@ -60,13 +65,16 @@
   });
 </script>
 
-<div class="flex h-full flex-col bg-gray-50">
+<div class="flex h-full flex-col">
   <div
     class="flex flex-1 flex-col gap-4 overflow-y-auto p-6"
     bind:this={messagesContainer}
   >
     {#if error && onclearerror}
-      <ErrorMessage message={error} ondismiss={onclearerror} />
+      <Alert.Root status="error">
+        <XIcon />
+        <Alert.Title>{error}</Alert.Title>
+      </Alert.Root>
     {/if}
 
     {#if messages.length === 0 && !error}
@@ -80,34 +88,26 @@
           </p>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row">
-          <button
+          <Card
+            class="cursor-pointer select-none"
             onclick={() =>
               handleOptionClick(
                 "I'd like a walkthrough of the document. Please guide me through the key concepts and help me understand what I need to learn step by step.",
               )}
-            disabled={isLoading}
-            class="flex cursor-pointer flex-col items-start gap-2 rounded-lg border-2 border-blue-200 bg-blue-50 px-6 py-4 text-left transition-all hover:border-blue-400 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <span class="text-lg font-semibold text-blue-700">Walkthrough</span>
-            <span class="text-sm text-blue-600"
-              >Guided explanation of concepts</span
-            >
-          </button>
-          <button
+            <span class="text-lg font-semibold">👨‍🏫 Walkthrough</span>
+            <span class="text-sm">Guided explanation of concepts</span>
+          </Card>
+          <Card
+            class="cursor-pointer select-none"
             onclick={() =>
               handleOptionClick(
                 "I'd like to test my understanding with quiz-style questions. Please assess what I know and help me practice the concepts in this document.",
               )}
-            disabled={isLoading}
-            class="flex cursor-pointer flex-col items-start gap-2 rounded-lg border-2 border-emerald-200 bg-emerald-50 px-6 py-4 text-left transition-all hover:border-emerald-400 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <span class="text-lg font-semibold text-emerald-700"
-              >Quiz Style</span
-            >
-            <span class="text-sm text-emerald-600"
-              >Test knowledge with questions</span
-            >
-          </button>
+            <span class="text-lg font-semibold">✍ Quiz Style</span>
+            <span class="text-sm">Test knowledge with questions</span>
+          </Card>
         </div>
       </div>
     {/if}
@@ -125,27 +125,23 @@
         >
           {message.role === "user" ? "You" : "AI Teaching Assistant"}
         </div>
-        <div
-          class="rounded-lg px-4 py-3 leading-relaxed {message.role === 'user'
-            ? 'max-w-[80%] self-start bg-indigo-50 text-indigo-950'
-            : 'border border-gray-200 bg-white text-gray-800'}"
-        >
+        <Card>
           {#if message.role === "assistant"}
             <TAResponseRenderer value={message.content.explanation} />
           {:else}
             {message.content}
           {/if}
-        </div>
+        </Card>
         {#if message.role === "assistant" && message.content.options && message.content.options.length > 0}
           <div class="mt-3 flex flex-wrap gap-2">
             {#each message.content.options as option}
-              <button
+              <Button
                 onclick={() => handleOptionClick(option.value)}
                 disabled={isLoading || !isLastAssistantMessage}
-                class="cursor-pointer rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                variant="outline"
               >
                 {option.label}
-              </button>
+              </Button>
             {/each}
           </div>
         {/if}
@@ -159,26 +155,20 @@
         >
           AI Teaching Assistant
         </div>
-        <LoadingIndicator />
+        <Loader />
       </div>
     {/if}
   </div>
 
-  <div class="flex gap-3 border-t border-gray-200 bg-white p-4 px-6">
-    <textarea
+  <div class="flex gap-3 border-t bg-white p-6">
+    <Textarea
       bind:value={inputValue}
       onkeydown={handleKeyDown}
       placeholder="Ask a question..."
       disabled={isLoading}
-      rows="3"
-      class="font-inherit flex-1 resize-none rounded-lg border border-gray-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-100"
-    ></textarea>
-    <button
-      onclick={handleSend}
-      disabled={isLoading || !inputValue.trim()}
-      class="cursor-pointer self-end rounded-lg border-none bg-blue-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-400"
-    >
+    />
+    <Button onclick={handleSend} disabled={isLoading || !inputValue.trim()}>
       Ask
-    </button>
+    </Button>
   </div>
 </div>

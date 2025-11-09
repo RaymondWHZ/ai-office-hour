@@ -4,6 +4,7 @@
   import { applyEdits } from "$lib/documentEditor";
   import { SAMPLE_CONTENT } from "$lib/sampleContent";
   import DocumentEditor from "$components/document/DocumentEditor.svelte";
+  import { Card } from "$lib/components/ui/card";
 
   let documentContent = $state(SAMPLE_CONTENT);
   let chatHistory = $state<Message[]>([]);
@@ -75,8 +76,8 @@
   }
 </script>
 
-<div class="flex h-screen flex-col bg-white">
-  <div class="border-b-2 border-gray-200 bg-gray-50 px-8 py-6">
+<div class="flex h-screen flex-col">
+  <div class="border-b px-8 py-6">
     <h1 class="m-0 mb-1 text-2xl font-bold text-gray-900">AI Office Hour</h1>
     <p class="m-0 text-sm text-gray-600">
       Upload your assignment and ask questions to understand it better
@@ -84,24 +85,23 @@
   </div>
 
   <div class="grid flex-1 grid-cols-1 overflow-hidden md:grid-cols-2">
-    <div
-      class="flex flex-col overflow-hidden border-b-2 border-gray-200 md:border-r-2 md:border-b-0"
-    >
-      <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+    <div class="flex flex-col overflow-hidden border-r">
+      <div class="border-b px-8 py-6">
         <h2
           class="m-0 text-base font-semibold tracking-wide text-gray-700 uppercase"
         >
           Document
         </h2>
       </div>
-      <div class="flex-1 overflow-hidden">
-        <!-- <MarkdownEditor bind:value={documentContent} /> -->
-        <DocumentEditor bind:value={documentContent} />
+      <div class="flex-1 p-6">
+        <Card class="h-full">
+          <DocumentEditor bind:value={documentContent} />
+        </Card>
       </div>
     </div>
 
     <div class="flex flex-col overflow-hidden">
-      <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+      <div class="border-b px-8 py-6">
         <h2
           class="m-0 text-base font-semibold tracking-wide text-gray-700 uppercase"
         >

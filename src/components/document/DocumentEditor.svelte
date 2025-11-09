@@ -75,10 +75,8 @@
         migrateMathStrings(currentEditor);
       },
       onTransaction: ({ editor }) => {
-        // Update the bound value whenever the editor content changes
-        value = editor.getHTML();
-
         // Increment the state signal to force a re-render
+        value = editor.getHTML();
         editorState = { editor };
       },
     });
