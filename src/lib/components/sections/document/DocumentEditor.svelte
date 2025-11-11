@@ -114,9 +114,12 @@
   </Popover.Content>
 </Popover.Root>
 
-<div class="relative h-full p-6">
+<div class="relative flex h-full flex-col overflow-auto">
+  <!-- Block menu -->
   {#if editorState.editor}
-    <div class="mb-12">
+    <div
+      class="sticky top-0 z-10 bg-linear-to-b from-white via-white via-80% to-transparent p-6 pb-12"
+    >
       {#snippet nodeButton(
         title: string,
         name: string,
@@ -141,6 +144,7 @@
     </div>
   {/if}
 
+  <!-- Bubble menu -->
   <div
     class="transition-visibility invisible absolute flex border bg-white p-1 text-sm shadow-sm transition-opacity"
     bind:this={bubbleMenu}
@@ -179,5 +183,6 @@
     {/if}
   </div>
 
-  <div class="h-full" bind:this={element}></div>
+  <!-- Actual document -->
+  <div class="flex-1 px-6" bind:this={element}></div>
 </div>

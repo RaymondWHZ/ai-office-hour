@@ -220,8 +220,8 @@
           Document
         </h2>
       </div>
-      <div class="flex-1 p-6">
-        <Card class="h-full">
+      <div class="flex-1 overflow-hidden p-6">
+        <Card class="h-full overflow-hidden p-0">
           <DocumentEditor bind:value={currentSession.documentContent} />
         </Card>
       </div>
