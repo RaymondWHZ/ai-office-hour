@@ -33,7 +33,7 @@ const CommentNode = Node.create({
   addNodeView() {
     return ({ node }) => {
       const dom = document.createElement("span");
-      dom.setAttribute("class", "underline");
+      dom.setAttribute("class", "underline bg-accent");
       dom.addEventListener("mouseover", () => {
         commentState.dom = dom;
         commentState.comment = node.attrs.comment;

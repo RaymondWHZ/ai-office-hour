@@ -10,6 +10,10 @@
   import { latexState } from "./latex.svelte";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import * as Popover from "$lib/components/ui/popover";
+  import { Input } from "$lib/components/ui/input";
+  import { Button } from "$lib/components/ui/button";
+  import { Check } from "@lucide/svelte";
+  import { cn } from "$lib/utils";
 
   interface Props {
     value?: string;
@@ -65,6 +69,7 @@
     editorState.editor?.destroy();
   });
 
+  // Comment tooltip state
   const getCommentOpen = () => !!commentState.dom;
   const setCommentOpen = (open: boolean) => {
     if (!open) {
@@ -72,25 +77,40 @@
     }
   };
 
+  // Latex tooltip state
   const getLatexOpen = () => !!latexState.dom;
   const setLatexOpen = (open: boolean) => {
     if (!open) {
       latexState.dom = undefined;
+      setTimeout(() => latexState.update(latexState.latex), 10);
     }
   };
 </script>
 
 <Tooltip.Provider>
   <Tooltip.Root bind:open={getCommentOpen, setCommentOpen}>
-    <Tooltip.Content customAnchor={commentState.dom}>
+    <Tooltip.Content
+      class="shadow-sm"
+      customAnchor={commentState.dom}
+      sideOffset={8}
+    >
       {commentState.comment}
     </Tooltip.Content>
   </Tooltip.Root>
 </Tooltip.Provider>
 
 <Popover.Root bind:open={getLatexOpen, setLatexOpen}>
-  <Popover.Content customAnchor={latexState.dom}>
-    {latexState.latex}
+  <Popover.Content
+    class="w-[400px] p-2 shadow-sm"
+    customAnchor={latexState.dom}
+    sideOffset={8}
+    align="start"
+    alignOffset={-16}
+  >
+    <form class="flex gap-2" onsubmit={() => setLatexOpen(false)}>
+      <Input bind:value={latexState.latex} placeholder="LaTeX" />
+      <Button type="submit"><Check /></Button>
+    </form>
   </Popover.Content>
 </Popover.Root>
 
@@ -103,7 +123,7 @@
         attributes?: Record<string, any>,
       )}
         <button
-          class={`rounded px-1.5 ${editorState.editor?.isActive(name, attributes) ? "bg-black text-white" : "hover:bg-gray-200"}`}
+          class={`px-1.5 ${editorState.editor?.isActive(name, attributes) ? "bg-accent" : "hover:bg-accent"}`}
           onclick={() =>
             editorState.editor
               ?.chain()
@@ -122,17 +142,24 @@
   {/if}
 
   <div
-    class="transition-visibility invisible absolute flex rounded bg-black p-1 transition-opacity"
+    class="transition-visibility invisible absolute flex border bg-white p-1 text-sm shadow-sm transition-opacity"
     bind:this={bubbleMenu}
   >
     {#if editorState.editor}
       {#snippet markButton(
-        title: string,
+        title: HTMLElement | string,
+        classNames: string,
         name: string,
         attributes?: Record<string, any>,
       )}
         <button
-          class={`m-0 px-1 font-medium text-white opacity-60 ${editorState.editor?.isActive(name, attributes) ? "opacity-100" : "hover:opacity-100"}`}
+          class={cn(
+            "px-2 font-medium",
+            classNames,
+            editorState.editor?.isActive(name, attributes)
+              ? "bg-accent"
+              : "hover:bg-accent",
+          )}
           onclick={() =>
             editorState.editor
               ?.chain()
@@ -145,11 +172,10 @@
         </button>
       {/snippet}
 
-      {@render markButton("Bold", "bold")}
-      {@render markButton("Italic", "italic")}
-      {@render markButton("Strike", "strike")}
-      {@render markButton("Code", "code")}
-      {@render markButton("Highlight", "highlight")}
+      {@render markButton("Bold", "font-bold", "bold")}
+      {@render markButton("Italic", "italic", "italic")}
+      {@render markButton("Strike", "line-through", "strike")}
+      {@render markButton("`Code`", "font-mono pt-1", "code")}
     {/if}
   </div>
 

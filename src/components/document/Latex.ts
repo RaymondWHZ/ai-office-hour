@@ -1,5 +1,5 @@
 import { mergeAttributes, Node } from "@tiptap/core";
-import { commentState } from "./comment.svelte";
+import { latexState } from "./latex.svelte";
 import katex from "katex";
 
 const LatexNode = Node.create({
@@ -31,15 +31,27 @@ const LatexNode = Node.create({
     ];
   },
   addNodeView() {
-    return ({ node }) => {
+    return ({ node, view, getPos, editor }) => {
       const dom = document.createElement("span");
       katex.render(node.attrs.latex, dom, {
         throwOnError: false,
       });
       dom.addEventListener("click", (event) => {
         event.preventDefault();
-        commentState.dom = dom;
-        commentState.comment = node.attrs.latex;
+        latexState.dom = dom;
+        latexState.latex = node.attrs.latex;
+        latexState.update = (latex) => {
+          if (latex === node.attrs.latex) return;
+          console.log("edit");
+          const pos = getPos();
+          if (!pos) return;
+          view.dispatch(
+            view.state.tr.setNodeMarkup(pos, undefined, {
+              latex,
+            }),
+          );
+          editor.commands.focus();
+        };
       });
 
       return {
