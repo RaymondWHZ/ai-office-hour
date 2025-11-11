@@ -2,7 +2,6 @@
   import { onDestroy, onMount } from "svelte";
   import { Editor } from "@tiptap/core";
   import { StarterKit } from "@tiptap/starter-kit";
-  import Highlight from "@tiptap/extension-highlight";
   import BubbleMenu from "@tiptap/extension-bubble-menu";
   import CommentNode from "./Comment";
   import LatexNode from "./Latex";
@@ -34,7 +33,6 @@
       element: element,
       extensions: [
         StarterKit,
-        Highlight,
         CommentNode,
         LatexNode,
         BubbleMenu.configure({
