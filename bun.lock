@@ -1,12 +1,9 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "ai-office-hour",
-      "dependencies": {
-        "mode-watcher": "^1.1.0",
-        "svelte-sonner": "^1.0.5",
-      },
       "devDependencies": {
         "@ai-sdk/anthropic": "^2.0.42",
         "@ai-sdk/svelte": "^3.0.89",
@@ -26,12 +23,14 @@
         "clsx": "^2.1.1",
         "marked": "^17.0.0",
         "marked-katex-extension": "^5.1.6",
+        "mode-watcher": "^1.1.0",
         "oxlint": "^1.26.0",
         "prettier": "^3.6.2",
         "prettier-plugin-svelte": "^3.4.0",
         "prettier-plugin-tailwindcss": "^0.7.1",
         "svelte": "^5.41.0",
         "svelte-check": "^4.3.3",
+        "svelte-sonner": "^1.0.5",
         "tailwind-merge": "^3.3.1",
         "tailwind-variants": "^3.1.1",
         "tailwindcss": "^4.1.14",
