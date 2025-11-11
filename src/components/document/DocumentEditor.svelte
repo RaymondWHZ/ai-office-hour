@@ -5,7 +5,7 @@
   import Highlight from "@tiptap/extension-highlight";
   import Math, { migrateMathStrings } from "@tiptap/extension-mathematics";
   import BubbleMenu from "@tiptap/extension-bubble-menu";
-  import { commentState } from "./commentState.svelte";
+  import { commentState } from "./comment.svelte";
   import CommentNode from "./Comment";
   import * as Tooltip from "$lib/components/ui/tooltip";
 
