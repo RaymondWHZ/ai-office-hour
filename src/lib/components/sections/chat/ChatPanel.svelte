@@ -13,6 +13,7 @@
     messages: Message[];
     isLoading: boolean;
     error?: string | null;
+    inputValue?: string;
     onsend: (message: string) => void;
     onclearerror?: () => void;
   }
@@ -21,11 +22,10 @@
     messages,
     isLoading,
     error = null,
+    inputValue = $bindable(""),
     onsend,
     onclearerror,
   }: Props = $props();
-
-  let inputValue = $state("");
   // eslint-disable-next-line no-unassigned-vars
   let messagesContainer: HTMLDivElement | undefined;
 
