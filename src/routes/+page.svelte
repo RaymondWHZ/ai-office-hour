@@ -1,9 +1,9 @@
 <script lang="ts">
-  import ChatPanel from "$components/chat/ChatPanel.svelte";
-  import type { Message, AIResponse } from "$types/ai";
+  import ChatPanel from "$lib/components/sections/chat/ChatPanel.svelte";
+  import type { AIResponse, Message } from "$lib/types/ai";
   import { applyEdits } from "$lib/documentEditor";
-  import { SAMPLE_CONTENT } from "$lib/sampleContent";
-  import DocumentEditor from "$components/document/DocumentEditor.svelte";
+  import { SAMPLE_CONTENT } from "$lib/constants/sampleContent";
+  import DocumentEditor from "$lib/components/sections/document/DocumentEditor.svelte";
   import { Card } from "$lib/components/ui/card";
 
   let documentContent = $state(SAMPLE_CONTENT);

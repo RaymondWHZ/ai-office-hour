@@ -1,5 +1,5 @@
-import { mergeAttributes, Node } from "@tiptap/core";
-import { latexState } from "./latex.svelte";
+import { Node, mergeAttributes } from "@tiptap/core";
+import { latexState } from "./document.svelte";
 import katex from "katex";
 
 const LatexNode = Node.create({

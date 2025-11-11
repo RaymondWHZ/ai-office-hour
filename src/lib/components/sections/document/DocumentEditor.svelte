@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { Editor } from "@tiptap/core";
   import { StarterKit } from "@tiptap/starter-kit";
   import Highlight from "@tiptap/extension-highlight";
   import BubbleMenu from "@tiptap/extension-bubble-menu";
   import CommentNode from "./Comment";
   import LatexNode from "./Latex";
-  import { commentState } from "./comment.svelte";
-  import { latexState } from "./latex.svelte";
+  import { commentState, latexState } from "./document.svelte";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import * as Popover from "$lib/components/ui/popover";
   import { Input } from "$lib/components/ui/input";

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { Message } from "../../types/ai";
-  import LoadingIndicator from "./LoadingIndicator.svelte";
+  import type { Message } from "$lib/types/ai";
   import TAResponseRenderer from "./TAResponseRenderer.svelte";
   import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
