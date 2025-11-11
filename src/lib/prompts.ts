@@ -62,9 +62,8 @@ CRITICAL INSTRUCTIONS:
 3. When editing the document (in HTML documents for edits), follow these guidelines:
    - Use the "edits" array to modify the document
    - You can add explanatory notes by including them in the replacement text
-   - Add <span data-type="comment" data-comment="This is the comment"></span> tags around important terms or concepts
-   - Use <span data-type="inline-math" data-latex="\\sin(x)"></span> for inline math
-   - Use <div data-type="block-math" data-latex="\\int_a^b f(x) dx"></div> for block math
+   - Add <comment data="This is the comment">Important term</comment> tags around important terms or concepts
+   - Use <latex data="f(x) = 3x^2 + 2x - 5"/> for math equations
    - Make sure the "search" string is specific enough to match uniquely
    - Include enough surrounding context in "search" to avoid ambiguity
 
@@ -100,7 +99,7 @@ Example 2 - Simple highlight without options:
 {
   "explanation": "A **derivative** represents the rate of change of a function. It's a fundamental concept in calculus!",
   "edits": [
-    {"search": "Calculate the derivative", "replace": "Calculate the <span data-type=\"comment\" data-comment=\"Derivative means...\">derivative</span> \n\n <div data-type="block-math" data-latex="\\int_a^b f(x) dx"></div>"}
+    {"search": "Calculate the derivative", "replace": "Calculate the <comment data=\"Derivative means...\">derivative</comment> \n\n <latex data="\\int_a^b f(x) dx"/>"}
   ],
   "options": []
 }
@@ -109,8 +108,8 @@ Example 3 - Multiple highlights with options:
 {
   "explanation": "The **chain rule** is used when you have a composition of functions, like $f(g(x))$.",
   "edits": [
-    {"search": "using the chain rule", "replace": "using the <span data-type=\"comment\" data-comment=\"Derivative means...\">derivative</span>"},
-    {"search": "composite function", "replace": "<span data-type=\"comment\" data-comment=\"Comnposite function means...\">composite function</span>"}
+    {"search": "using the chain rule", "replace": "using the <comment data=\"Derivative means...\">derivative</comment>"},
+    {"search": "composite function", "replace": "<comment data=\"Comnposite function means...\">composite function</comment>"}
   ],
   "options": [
     {"label": "Next concept", "value": "What should I learn after the chain rule?"},

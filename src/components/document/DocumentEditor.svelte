@@ -3,11 +3,13 @@
   import { Editor } from "@tiptap/core";
   import { StarterKit } from "@tiptap/starter-kit";
   import Highlight from "@tiptap/extension-highlight";
-  import Math, { migrateMathStrings } from "@tiptap/extension-mathematics";
   import BubbleMenu from "@tiptap/extension-bubble-menu";
-  import { commentState } from "./comment.svelte";
   import CommentNode from "./Comment";
+  import LatexNode from "./Latex";
+  import { commentState } from "./comment.svelte";
+  import { latexState } from "./latex.svelte";
   import * as Tooltip from "$lib/components/ui/tooltip";
+  import * as Popover from "$lib/components/ui/popover";
 
   interface Props {
     value?: string;
@@ -29,44 +31,13 @@
       extensions: [
         StarterKit,
         Highlight,
-        Math.configure({
-          blockOptions: {
-            onClick: (node, pos) => {
-              const newCalculation = prompt(
-                "Enter new calculation:",
-                node.attrs.latex,
-              );
-              if (newCalculation) {
-                editorState.editor
-                  ?.chain()
-                  .setNodeSelection(pos)
-                  .updateBlockMath({ latex: newCalculation })
-                  .focus()
-                  .run();
-              }
-            },
-          },
-          inlineOptions: {
-            onClick: (node, pos) => {
-              const newCalculation = prompt(
-                "Enter new calculation:",
-                node.attrs.latex,
-              );
-              if (newCalculation) {
-                editorState.editor
-                  ?.chain()
-                  .setNodeSelection(pos)
-                  .updateInlineMath({ latex: newCalculation })
-                  .focus()
-                  .run();
-              }
-            },
-          },
-        }),
+        CommentNode,
+        LatexNode,
         BubbleMenu.configure({
           element: bubbleMenu,
+          shouldShow: ({ editor, state }) =>
+            !state.selection.empty && !editor.isActive("latex"),
         }),
-        CommentNode,
       ],
       editorProps: {
         attributes: {
@@ -74,10 +45,6 @@
         },
       },
       content: value,
-      onCreate: ({ editor: currentEditor }) => {
-        // Migrate $$ math strings to math nodes
-        migrateMathStrings(currentEditor);
-      },
       onTransaction: ({ editor }) => {
         // Increment the state signal to force a re-render
         value = editor.getHTML();
@@ -98,21 +65,34 @@
     editorState.editor?.destroy();
   });
 
-  const getOpen = () => !!commentState.dom;
-  const setOpen = (open: boolean) => {
+  const getCommentOpen = () => !!commentState.dom;
+  const setCommentOpen = (open: boolean) => {
     if (!open) {
       commentState.dom = undefined;
+    }
+  };
+
+  const getLatexOpen = () => !!latexState.dom;
+  const setLatexOpen = (open: boolean) => {
+    if (!open) {
+      latexState.dom = undefined;
     }
   };
 </script>
 
 <Tooltip.Provider>
-  <Tooltip.Root bind:open={getOpen, setOpen}>
+  <Tooltip.Root bind:open={getCommentOpen, setCommentOpen}>
     <Tooltip.Content customAnchor={commentState.dom}>
       {commentState.comment}
     </Tooltip.Content>
   </Tooltip.Root>
 </Tooltip.Provider>
+
+<Popover.Root bind:open={getLatexOpen, setLatexOpen}>
+  <Popover.Content customAnchor={latexState.dom}>
+    {latexState.latex}
+  </Popover.Content>
+</Popover.Root>
 
 <div class="relative h-full p-6">
   {#if editorState.editor}

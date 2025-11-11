@@ -1,14 +1,15 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 import { commentState } from "./comment.svelte";
+import katex from "katex";
 
-const CommentNode = Node.create({
-  name: "comment",
+const LatexNode = Node.create({
+  name: "latex",
   group: "inline",
   inline: true,
-  content: "inline*",
+  atom: true,
   addAttributes() {
     return {
-      comment: {
+      latex: {
         default: "",
         parseHTML: (element) => element.getAttribute("data"),
       },
@@ -17,40 +18,35 @@ const CommentNode = Node.create({
   parseHTML() {
     return [
       {
-        tag: "comment",
+        tag: "latex",
       },
     ];
   },
   renderHTML({ HTMLAttributes, node }) {
     return [
-      "comment",
+      "latex",
       mergeAttributes(HTMLAttributes, {
-        data: node.attrs.comment,
+        data: node.attrs.latex,
       }),
-      0,
     ];
   },
   addNodeView() {
     return ({ node }) => {
       const dom = document.createElement("span");
-      dom.setAttribute("class", "underline");
-      dom.addEventListener("mouseover", () => {
+      katex.render(node.attrs.latex, dom, {
+        throwOnError: false,
+      });
+      dom.addEventListener("click", (event) => {
+        event.preventDefault();
         commentState.dom = dom;
-        commentState.comment = node.attrs.comment;
+        commentState.comment = node.attrs.latex;
       });
-      dom.addEventListener("mouseout", () => {
-        commentState.dom = undefined;
-      });
-
-      const contentDOM = document.createElement("span");
-      dom.append(contentDOM);
 
       return {
         dom,
-        contentDOM,
       };
     };
   },
 });
 
-export default CommentNode;
+export default LatexNode;
