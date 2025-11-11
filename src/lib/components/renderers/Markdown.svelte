@@ -3,10 +3,11 @@
   import markedKatex from "marked-katex-extension";
 
   interface Props {
-    value: string;
+    class?: string;
+    value?: string;
   }
 
-  let { value = "" }: Props = $props();
+  let { class: className = "", value = "" }: Props = $props();
 
   marked.use({
     silent: true,
@@ -18,6 +19,6 @@
   );
 </script>
 
-<div class="prose max-w-none">
+<div class={className}>
   {@html marked(value)}
 </div>

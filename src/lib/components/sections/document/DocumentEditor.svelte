@@ -13,6 +13,7 @@
   import { Button } from "$lib/components/ui/button";
   import { Check } from "@lucide/svelte";
   import { cn } from "$lib/utils";
+  import Markdown from "$lib/components/renderers/Markdown.svelte";
 
   interface Props {
     value?: string;
@@ -93,7 +94,7 @@
       customAnchor={commentState.dom}
       sideOffset={8}
     >
-      {commentState.comment}
+      <Markdown value={commentState.comment} />
     </Tooltip.Content>
   </Tooltip.Root>
 </Tooltip.Provider>

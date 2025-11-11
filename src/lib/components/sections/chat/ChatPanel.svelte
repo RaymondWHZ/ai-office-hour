@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import type { Message } from "$lib/types/ai";
-  import MarkdownRenderer from "./MarkdownRenderer.svelte";
+  import Markdown from "$lib/components/renderers/Markdown.svelte";
   import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
   import { Card } from "$lib/components/ui/card";
@@ -126,7 +126,10 @@
         </div>
         <Card>
           {#if message.role === "assistant"}
-            <MarkdownRenderer value={message.content.explanation} />
+            <Markdown
+              class="prose max-w-none"
+              value={message.content.explanation}
+            />
           {:else}
             {message.content}
           {/if}
