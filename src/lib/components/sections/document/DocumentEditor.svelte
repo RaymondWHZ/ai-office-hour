@@ -146,7 +146,7 @@
 
   <!-- Bubble menu -->
   <div
-    class="transition-visibility invisible absolute flex border bg-white p-1 text-sm shadow-sm transition-opacity"
+    class="transition-visibility invisible absolute z-20 flex border bg-white p-1 text-sm shadow-sm transition-opacity"
     bind:this={bubbleMenu}
   >
     {#if editorState.editor}
