@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { Carta, Markdown } from "carta-md";
-  import { math } from "@cartamd/plugin-math";
-  import { code } from "@cartamd/plugin-code";
-  import "carta-md/default.css";
+  import { marked } from "marked";
+  import markedKatex from "marked-katex-extension";
 
   interface Props {
     value: string;
@@ -10,14 +8,18 @@
 
   let { value = "" }: Props = $props();
 
-  let carta = new Carta({
-    extensions: [math(), code()],
-    sanitizer: (s) => s,
+  marked.use({
+    silent: true,
   });
+  marked.use(
+    markedKatex({
+      throwOnError: false,
+    }),
+  );
 </script>
 
-<div class="flex h-full flex-col items-stretch justify-stretch">
-  {#if carta}
-    <Markdown {carta} {value} />
-  {/if}
+<div
+  class="prose flex h-full max-w-none flex-col items-stretch justify-stretch"
+>
+  {@html marked(value)}
 </div>
