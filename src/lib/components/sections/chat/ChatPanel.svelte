@@ -8,6 +8,7 @@
   import * as Alert from "$lib/components/ui/alert";
   import { XIcon } from "@lucide/svelte";
   import { Loader } from "$lib/components/ui/loader";
+  import { START_OPTIONS } from "$lib/constants/startOptions";
 
   interface Props {
     messages: Message[];
@@ -87,26 +88,15 @@
           </p>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row">
-          <Card
-            class="cursor-pointer select-none"
-            onclick={() =>
-              handleOptionClick(
-                "I'd like a walkthrough of the document. Please guide me through the key concepts and help me understand what I need to learn step by step.",
-              )}
-          >
-            <span class="text-lg font-semibold">👨‍🏫 Walkthrough</span>
-            <span class="text-sm">Guided explanation of concepts</span>
-          </Card>
-          <Card
-            class="cursor-pointer select-none"
-            onclick={() =>
-              handleOptionClick(
-                "I'd like to test my understanding with quiz-style questions. Please assess what I know and help me practice the concepts in this document.",
-              )}
-          >
-            <span class="text-lg font-semibold">✍ Quiz Style</span>
-            <span class="text-sm">Test knowledge with questions</span>
-          </Card>
+          {#each START_OPTIONS as option}
+            <Card
+              class="cursor-pointer select-none"
+              onclick={() => handleOptionClick(option.prompt)}
+            >
+              <span class="text-lg font-semibold">{option.title}</span>
+              <span class="text-sm">{option.description}</span>
+            </Card>
+          {/each}
         </div>
       </div>
     {/if}
