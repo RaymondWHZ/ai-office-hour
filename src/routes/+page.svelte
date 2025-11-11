@@ -19,6 +19,7 @@
   } from "$lib/stores/sessionStore.svelte";
   import { PlusIcon, TrashIcon } from "@lucide/svelte";
   import { SAMPLE_CONTENT } from "$lib/constants/sampleContent";
+  import * as Popover from "$lib/components/ui/popover";
 
   const createDefaultSession = () => ({
     documentContent: SAMPLE_CONTENT,
@@ -133,36 +134,10 @@
   }
 
   function handleDeleteSession() {
-    if (!activeSessionId) {
-      // Can't delete a virtual session
-      return;
-    }
-
-    if (sessions.length === 1) {
-      // Deleting the last session - enter virtual state
-      if (
-        confirm(
-          "This is your last session. Deleting it will start a new session. Continue?",
-        )
-      ) {
-        deleteSession(activeSessionId);
-        sessionState.activeSessionId = null;
-        currentSession = createDefaultSession();
-      }
-      return;
-    }
-
-    if (
-      confirm(
-        "Are you sure you want to delete this session? This action cannot be undone.",
-      )
-    ) {
-      const currentIndex = sessions.findIndex((s) => s.id === activeSessionId);
+    if (activeSessionId) {
       deleteSession(activeSessionId);
-
-      // Switch to another session after deletion
-      const newIndex = Math.min(currentIndex, sessions.length - 1);
-      sessionState.activeSessionId = sessions[newIndex].id;
+      sessionState.activeSessionId = null;
+      currentSession = createDefaultSession();
     }
   }
 </script>
@@ -199,14 +174,37 @@
         <Button onclick={handleNewSession} variant="outline" size="icon">
           <PlusIcon class="h-4 w-4" />
         </Button>
-        <Button
-          onclick={handleDeleteSession}
-          variant="outline"
-          size="icon"
-          disabled={!activeSessionId}
-        >
-          <TrashIcon class="h-4 w-4" />
-        </Button>
+        <Popover.Root>
+          <Popover.Trigger>
+            <Button variant="outline" size="icon" disabled={!activeSessionId}>
+              <TrashIcon class="h-4 w-4" />
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content
+            class="w-[280px] shadow-sm"
+            sideOffset={10}
+            align="end"
+          >
+            <p class="mb-4 text-sm text-gray-700">
+              Are you sure you want to delete this session? This action cannot
+              be undone.
+            </p>
+            <div class="flex justify-end gap-2">
+              <Popover.Close>
+                <Button variant="outline" size="sm">Cancel</Button>
+              </Popover.Close>
+              <Popover.Close>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onclick={handleDeleteSession}
+                >
+                  Delete
+                </Button>
+              </Popover.Close>
+            </div>
+          </Popover.Content>
+        </Popover.Root>
       </div>
     </div>
   </div>
