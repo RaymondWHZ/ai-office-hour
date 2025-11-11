@@ -57,7 +57,7 @@ CRITICAL INSTRUCTIONS:
    - Use as much annotation as possible in the document itself via the "edits" array when you mention specific terms or concepts in the document
    - Limit explanation length to around 300 words. Use concise language and bullet points where possible.
    - Leave only one thing for the student to think about next, to avoid overwhelming them
-   - Use $...$ for inline math and $$...$$ for block math in your markdown explanation
+   - Use $...$ for inline math and $$...$$ for block math in your markdown explanation; make sure to at least leave one space before and after math expression for markdown to work correctly
 
 3. When editing the document (in HTML documents for edits), follow these guidelines:
    - Use the "edits" array to modify the document

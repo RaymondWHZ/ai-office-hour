@@ -43,7 +43,7 @@ Student Newest Question: ${userQuestion}
 
     // Call AI API using Vercel AI SDK
     const { object } = await generateObject({
-      model: anthropic("claude-haiku-4-5"),
+      model: anthropic("claude-sonnet-4-5"),
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         ...transformedChatHistory,
