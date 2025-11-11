@@ -20,6 +20,7 @@
   import { PlusIcon, TrashIcon } from "@lucide/svelte";
   import { SAMPLE_CONTENT } from "$lib/constants/sampleContent";
   import * as Popover from "$lib/components/ui/popover";
+  import { toast } from "svelte-sonner";
 
   const createDefaultSession = () => ({
     documentContent: SAMPLE_CONTENT,
@@ -110,8 +111,12 @@
       upsertSession(currentSession);
     } catch (err) {
       console.error("Error sending message:", err);
-      error =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+      toast.error(
+        err instanceof Error ? err.message : "An unknown error occurred",
+        {
+          richColors: true,
+        },
+      );
     } finally {
       isLoading = false;
     }
