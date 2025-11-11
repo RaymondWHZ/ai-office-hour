@@ -5,6 +5,9 @@
   import Highlight from "@tiptap/extension-highlight";
   import Math, { migrateMathStrings } from "@tiptap/extension-mathematics";
   import BubbleMenu from "@tiptap/extension-bubble-menu";
+  import { commentState } from "./commentState.svelte";
+  import CommentNode from "./Comment";
+  import * as Tooltip from "$lib/components/ui/tooltip";
 
   interface Props {
     value?: string;
@@ -63,6 +66,7 @@
         BubbleMenu.configure({
           element: bubbleMenu,
         }),
+        CommentNode,
       ],
       editorProps: {
         attributes: {
@@ -93,7 +97,22 @@
   onDestroy(() => {
     editorState.editor?.destroy();
   });
+
+  const getOpen = () => !!commentState.dom;
+  const setOpen = (open: boolean) => {
+    if (!open) {
+      commentState.dom = undefined;
+    }
+  };
 </script>
+
+<Tooltip.Provider>
+  <Tooltip.Root bind:open={getOpen, setOpen}>
+    <Tooltip.Content customAnchor={commentState.dom}>
+      {commentState.comment}
+    </Tooltip.Content>
+  </Tooltip.Root>
+</Tooltip.Provider>
 
 <div class="relative h-full p-6">
   {#if editorState.editor}

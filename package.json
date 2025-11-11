@@ -33,7 +33,7 @@
     "@tiptap/pm": "^3.10.4",
     "@tiptap/starter-kit": "^3.10.4",
     "ai": "^5.0.89",
-    "bits-ui": "^2.14.2",
+    "bits-ui": "^2.14.3",
     "carta-md": "^4.11.1",
     "clsx": "^2.1.1",
     "oxlint": "^1.26.0",
