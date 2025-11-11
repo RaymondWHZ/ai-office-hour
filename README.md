@@ -4,7 +4,7 @@ An AI-powered tutoring assistant that helps students understand academic problem
 
 ## Tech Stack
 
-- **Framework**: [Svelte 5](https://svelte.dev) (with runes mode)
+- **Framework**: [Svelte 5](https://svelte.dev) (with runes mode) + [SvelteKit](https://svelte.dev)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com)
 - **AI SDK**: [Vercel AI SDK](https://sdk.vercel.ai) with Claude integration
 - **Linting**: [oxlint](https://oxc.rs)
@@ -49,7 +49,7 @@ CLAUDE_API_KEY=your_api_key_here
 bun run dev
 ```
 
-Open [http://localhost:4321](http://localhost:4321) in your browser.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Available Custom Commands
 
