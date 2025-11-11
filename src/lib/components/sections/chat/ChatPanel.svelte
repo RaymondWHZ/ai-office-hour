@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import type { Message } from "$lib/types/ai";
-  import TAResponseRenderer from "./TAResponseRenderer.svelte";
+  import MarkdownRenderer from "./MarkdownRenderer.svelte";
   import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
   import { Card } from "$lib/components/ui/card";
@@ -126,7 +126,7 @@
         </div>
         <Card>
           {#if message.role === "assistant"}
-            <TAResponseRenderer value={message.content.explanation} />
+            <MarkdownRenderer value={message.content.explanation} />
           {:else}
             {message.content}
           {/if}

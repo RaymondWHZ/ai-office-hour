@@ -18,8 +18,6 @@
   );
 </script>
 
-<div
-  class="prose flex h-full max-w-none flex-col items-stretch justify-stretch"
->
+<div class="prose max-w-none">
   {@html marked(value)}
 </div>
