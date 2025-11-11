@@ -35,11 +35,11 @@ const CommentNode = Node.create({
     return ({ node }) => {
       const dom = document.createElement("span");
       dom.setAttribute("class", "underline");
-      dom.addEventListener("mouseover", (event) => {
+      dom.addEventListener("mouseover", () => {
         commentState.dom = dom;
         commentState.comment = node.attrs.comment;
       });
-      dom.addEventListener("mouseout", (event) => {
+      dom.addEventListener("mouseout", () => {
         commentState.dom = undefined;
       });
 
