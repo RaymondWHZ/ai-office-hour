@@ -66,7 +66,10 @@
           Upload your assignment and ask questions to understand it better
         </p>
       </div>
-      <SessionSwitcher />
+      <SessionSwitcher
+        onClickNew={() => (currentSession = undefined)}
+        onDelete={() => (currentSession = undefined)}
+      />
     </div>
   </div>
 
