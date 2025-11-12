@@ -1,10 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import ChatPanel from "$lib/components/sections/chat/ChatPanel.svelte";
-  import type { AIResponse, Message } from "$lib/types/ai";
-  import { applyEdits } from "$lib/documentEditor";
-  import DocumentEditor from "$lib/components/sections/document/DocumentEditor.svelte";
-  import { Card } from "$lib/components/ui/card";
   import { Button } from "$lib/components/ui/button";
   import * as Select from "$lib/components/ui/select";
   import {
@@ -14,13 +9,14 @@
     loadFromStorage,
     switchSession,
     deleteSession,
-    upsertSession,
+    createSession,
+    updateSession,
     type SessionData,
   } from "$lib/stores/sessionStore.svelte";
   import { PlusIcon, TrashIcon } from "@lucide/svelte";
   import { SAMPLE_CONTENT } from "$lib/constants/sampleContent";
   import * as Popover from "$lib/components/ui/popover";
-  import { toast } from "svelte-sonner";
+  import TutoringView from "$lib/components/sections/TutoringView.svelte";
 
   const createDefaultSession = () => ({
     documentContent: SAMPLE_CONTENT,
@@ -28,9 +24,7 @@
     inputValue: "",
   });
 
-  let isLoading = $state(false);
   let currentSession = $state<SessionData>(createDefaultSession());
-  let error = $state<string | null>(null);
 
   // Derived values
   const sessions = $derived(sessionState.sessions);
@@ -42,89 +36,6 @@
     loadFromStorage();
     currentSession = getActiveSession(sessionState) ?? currentSession;
   });
-
-  // Auto-save current input value
-  // $effect(() => {
-  //   if (activeSessionId) {
-  //     updateSession(activeSessionId, {
-  //       inputValue,
-  //     });
-  //   }
-  // });
-
-  async function handleSendMessage(userQuestion: string) {
-    // Clear any existing errors
-    error = null;
-
-    // Add user message to chat
-    const userMessage: Message = {
-      role: "user",
-      content: userQuestion,
-    };
-    currentSession.chatHistory.push(userMessage);
-
-    // Set loading state
-    isLoading = true;
-
-    try {
-      // Call API
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          documentContent: currentSession.documentContent,
-          userQuestion,
-          chatHistory: currentSession.chatHistory.slice(0, -1), // Don't include the message we just added
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to get AI response");
-      }
-
-      const aiResponse: AIResponse = await response.json();
-
-      // Apply edits to document
-      if (aiResponse.edits && aiResponse.edits.length > 0) {
-        try {
-          currentSession.documentContent = applyEdits(
-            currentSession.documentContent,
-            aiResponse.edits,
-          );
-        } catch (editError) {
-          console.error("Error applying edits:", editError);
-          // Continue even if edits fail - still show the explanation
-        }
-      }
-
-      // Add AI explanation to chat
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: aiResponse,
-      };
-      currentSession.chatHistory.push(assistantMessage);
-
-      // Update session
-      upsertSession(currentSession);
-    } catch (err) {
-      console.error("Error sending message:", err);
-      toast.error(
-        err instanceof Error ? err.message : "An unknown error occurred",
-        {
-          richColors: true,
-        },
-      );
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  function handleClearError() {
-    error = null;
-  }
 
   function handleNewSession() {
     // Enter virtual state
@@ -145,6 +56,29 @@
       currentSession = createDefaultSession();
     }
   }
+
+  let timer: number | undefined = undefined;
+  $effect(() => {
+    // Debounce saving to avoid excessive writes
+    clearTimeout(timer);
+
+    // Reference properties to track changes
+    void currentSession.chatHistory;
+    void currentSession.documentContent;
+    void currentSession.inputValue;
+
+    if (activeSessionId) {
+      timer = setTimeout(() => {
+        // Trigger Svelte reactivity
+        updateSession(activeSessionId, currentSession);
+      }, 1000);
+    } else if (currentSession.chatHistory.length > 0) {
+      // If in a new session and there's content, create a new session
+      createSession(currentSession);
+    } else {
+      timer = undefined;
+    }
+  });
 </script>
 
 <div class="flex h-screen flex-col">
@@ -214,40 +148,9 @@
     </div>
   </div>
 
-  <div class="grid flex-1 grid-cols-1 overflow-hidden md:grid-cols-2">
-    <div class="flex flex-col overflow-hidden border-r">
-      <div class="border-b px-8 py-6">
-        <h2
-          class="m-0 text-base font-semibold tracking-wide text-gray-700 uppercase"
-        >
-          Document
-        </h2>
-      </div>
-      <div class="flex-1 overflow-hidden p-6">
-        <Card class="h-full overflow-hidden p-0">
-          <DocumentEditor bind:value={currentSession.documentContent} />
-        </Card>
-      </div>
-    </div>
-
-    <div class="flex flex-col overflow-hidden">
-      <div class="border-b px-8 py-6">
-        <h2
-          class="m-0 text-base font-semibold tracking-wide text-gray-700 uppercase"
-        >
-          Chat
-        </h2>
-      </div>
-      <div class="flex-1 overflow-hidden">
-        <ChatPanel
-          messages={currentSession.chatHistory}
-          bind:inputValue={currentSession.inputValue}
-          {isLoading}
-          {error}
-          onsend={handleSendMessage}
-          onclearerror={handleClearError}
-        />
-      </div>
-    </div>
-  </div>
+  <TutoringView
+    bind:documentContent={currentSession.documentContent}
+    bind:chatHistory={currentSession.chatHistory}
+    bind:inputValue={currentSession.inputValue}
+  />
 </div>

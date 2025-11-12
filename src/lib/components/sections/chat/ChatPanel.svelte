@@ -5,28 +5,23 @@
   import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
   import { Card } from "$lib/components/ui/card";
-  import * as Alert from "$lib/components/ui/alert";
-  import { XIcon } from "@lucide/svelte";
   import { Loader } from "$lib/components/ui/loader";
   import { START_OPTIONS } from "$lib/constants/startOptions";
 
   interface Props {
     messages: Message[];
     isLoading: boolean;
-    error?: string | null;
     inputValue?: string;
     onsend: (message: string) => void;
-    onclearerror?: () => void;
   }
 
   let {
     messages,
     isLoading,
-    error = null,
     inputValue = $bindable(""),
     onsend,
-    onclearerror,
   }: Props = $props();
+
   // eslint-disable-next-line no-unassigned-vars
   let messagesContainer: HTMLDivElement | undefined;
 
@@ -70,14 +65,7 @@
     class="flex flex-1 flex-col gap-4 overflow-y-auto p-6"
     bind:this={messagesContainer}
   >
-    {#if error && onclearerror}
-      <Alert.Root status="error">
-        <XIcon />
-        <Alert.Title>{error}</Alert.Title>
-      </Alert.Root>
-    {/if}
-
-    {#if messages.length === 0 && !error}
+    {#if messages.length === 0}
       <div class="flex h-full flex-col items-center justify-center gap-6 px-6">
         <div class="text-center">
           <p class="m-0 mb-2 text-lg font-semibold text-gray-700">

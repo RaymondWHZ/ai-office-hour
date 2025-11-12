@@ -48,8 +48,10 @@
       },
       content: value,
       onTransaction: ({ editor }) => {
-        // Increment the state signal to force a re-render
+        // Sync editor content to external value
         value = editor.getHTML();
+
+        // Increment the state signal to force a re-render
         editorState = { editor };
       },
     });
@@ -182,5 +184,5 @@
   </div>
 
   <!-- Actual document -->
-  <div class="flex-1 px-6" bind:this={element}></div>
+  <div class="flex-1 px-6 pb-6" bind:this={element}></div>
 </div>
