@@ -11,12 +11,6 @@
   } from "$lib/stores/sessionStore.svelte";
   import { PlusIcon, TrashIcon } from "@lucide/svelte";
 
-  interface Props {
-    onSessionChange?: (sessionId: string | null) => void;
-  }
-
-  let { onSessionChange }: Props = $props();
-
   // Derived values
   const sessions = $derived(sessionState.sessions);
   const activeSessionId = $derived(sessionState.activeSessionId);
@@ -25,20 +19,17 @@
   function handleSessionChange(data: string) {
     const sessionId = data === "" ? "" : data;
     switchSession(sessionId);
-    onSessionChange?.(sessionId);
   }
 
   function handleNewSession() {
     // Enter virtual state
-    sessionState.activeSessionId = null;
-    onSessionChange?.(null);
+    switchSession(null);
   }
 
   function handleDeleteSession() {
     if (activeSessionId) {
       deleteSession(activeSessionId);
-      sessionState.activeSessionId = null;
-      onSessionChange?.(null);
+      switchSession(null);
     }
   }
 </script>

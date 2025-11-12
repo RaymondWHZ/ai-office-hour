@@ -5,12 +5,11 @@
     updateSession,
     type SessionData,
     getActiveSession,
-    loadFromStorage,
   } from "$lib/stores/sessionStore.svelte";
   import { SAMPLE_CONTENT } from "$lib/constants/sampleContent";
   import TutoringView from "$lib/components/sections/views/TutoringView.svelte";
   import SessionSwitcher from "$lib/components/sections/views/SessionSwitcher.svelte";
-  import { onMount, untrack } from "svelte";
+  import { untrack } from "svelte";
   import WelcomeView from "$lib/components/sections/views/WelcomeView.svelte";
 
   const createEmptySession = () => ({
@@ -25,19 +24,12 @@
     inputValue: "",
   });
 
-  let loading = $state(true);
-
   let currentSession = $state<SessionData | undefined>();
   const activeSessionId = $derived(sessionState.activeSessionId);
 
-  const syncSession = () => {
-    currentSession = getActiveSession();
-  };
-
-  onMount(() => {
-    loadFromStorage();
-    syncSession();
-    loading = false;
+  $effect(() => {
+    void sessionState.activeSessionId;
+    currentSession = untrack(() => getActiveSession());
   });
 
   $effect(() => {
@@ -74,23 +66,20 @@
           Upload your assignment and ask questions to understand it better
         </p>
       </div>
-      <SessionSwitcher onSessionChange={syncSession} />
+      <SessionSwitcher />
     </div>
   </div>
 
-  {#if !loading}
-    {#if currentSession}
-      <TutoringView
-        bind:documentContent={currentSession.documentContent}
-        bind:chatHistory={currentSession.chatHistory}
-        bind:inputValue={currentSession.inputValue}
-      />
-    {:else}
-      <WelcomeView
-        onStartEmpty={() => (currentSession = createEmptySession())}
-        onStartExample={() => (currentSession = createExampleSession())}
-        onSessionChange={syncSession}
-      />
-    {/if}
+  {#if currentSession}
+    <TutoringView
+      bind:documentContent={currentSession.documentContent}
+      bind:chatHistory={currentSession.chatHistory}
+      bind:inputValue={currentSession.inputValue}
+    />
+  {:else}
+    <WelcomeView
+      onStartEmpty={() => (currentSession = createEmptySession())}
+      onStartExample={() => (currentSession = createExampleSession())}
+    />
   {/if}
 </div>

@@ -12,10 +12,9 @@
   interface Props {
     onStartEmpty?: () => void;
     onStartExample?: () => void;
-    onSessionChange?: (sessionId: string | null) => void;
   }
 
-  let { onStartEmpty, onStartExample, onSessionChange }: Props = $props();
+  let { onStartEmpty, onStartExample }: Props = $props();
 </script>
 
 <div class="flex flex-1 flex-col items-center">
@@ -37,11 +36,8 @@
       <Command.Separator />
       <Command.Group heading="Previous Sessions">
         {#each sessionState.sessions as session}
-          <Command.Item
-            onclick={() => {
-              switchSession(session.id);
-              onSessionChange?.(session.id);
-            }}>{formatSessionName(session)}</Command.Item
+          <Command.Item onclick={() => switchSession(session.id)}
+            >{formatSessionName(session)}</Command.Item
           >
         {/each}
       </Command.Group>
