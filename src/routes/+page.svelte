@@ -11,46 +11,55 @@
   import TutoringView from "$lib/components/sections/views/TutoringView.svelte";
   import SessionSwitcher from "$lib/components/sections/views/SessionSwitcher.svelte";
   import { onMount, untrack } from "svelte";
+  import WelcomeView from "$lib/components/sections/views/WelcomeView.svelte";
 
-  const createDefaultSession = () => ({
+  const createEmptySession = () => ({
+    documentContent: "",
+    chatHistory: [],
+    inputValue: "",
+  });
+
+  const createExampleSession = () => ({
     documentContent: SAMPLE_CONTENT,
     chatHistory: [],
     inputValue: "",
   });
 
-  let currentSession = $state<SessionData>(createDefaultSession());
+  let loading = $state(true);
+
+  let currentSession = $state<SessionData | undefined>();
   const activeSessionId = $derived(sessionState.activeSessionId);
 
   const syncSession = () => {
-    currentSession = getActiveSession() ?? createDefaultSession();
+    currentSession = getActiveSession();
   };
 
   onMount(() => {
     loadFromStorage();
     syncSession();
+    loading = false;
   });
 
   $effect(() => {
+    if (!currentSession) return;
+
     // Reference properties to track changes
     void currentSession.chatHistory;
     void currentSession.documentContent;
     void currentSession.inputValue;
 
-    let timer: number | undefined;
     if (untrack(() => activeSessionId)) {
-      timer = setTimeout(() => {
-        // Trigger Svelte reactivity
-        console.log("Auto-saving session:", activeSessionId);
-        updateSession(activeSessionId!, currentSession);
+      // Debounced update for existing session
+      const timer = setTimeout(() => {
+        if (activeSessionId && currentSession) {
+          updateSession(activeSessionId, currentSession);
+        }
       }, 500);
+      return () => clearTimeout(timer);
     } else if (currentSession.chatHistory.length > 0) {
       // If in a new session and there's content, create a new session
       createSession(currentSession);
     }
-
-    return () => {
-      clearTimeout(timer);
-    };
   });
 </script>
 
@@ -69,9 +78,19 @@
     </div>
   </div>
 
-  <TutoringView
-    bind:documentContent={currentSession.documentContent}
-    bind:chatHistory={currentSession.chatHistory}
-    bind:inputValue={currentSession.inputValue}
-  />
+  {#if !loading}
+    {#if currentSession}
+      <TutoringView
+        bind:documentContent={currentSession.documentContent}
+        bind:chatHistory={currentSession.chatHistory}
+        bind:inputValue={currentSession.inputValue}
+      />
+    {:else}
+      <WelcomeView
+        onStartEmpty={() => (currentSession = createEmptySession())}
+        onStartExample={() => (currentSession = createExampleSession())}
+        onSessionChange={syncSession}
+      />
+    {/if}
+  {/if}
 </div>
