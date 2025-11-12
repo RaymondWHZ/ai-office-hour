@@ -39,9 +39,9 @@ export const formatSessionName = (session: Session) => {
 };
 
 // Derived state utility
-export const getActiveSession = (state: SessionState) => {
-  return state.activeSessionId
-    ? state.sessions.find((s) => s.id === state.activeSessionId)
+export const getActiveSession = () => {
+  return sessionState.activeSessionId
+    ? sessionState.sessions.find((s) => s.id === sessionState.activeSessionId)
     : undefined;
 };
 

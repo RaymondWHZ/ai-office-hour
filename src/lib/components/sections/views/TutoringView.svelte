@@ -2,9 +2,9 @@
   import { applyEdits } from "$lib/documentEditor";
   import type { AIResponse, Message } from "$lib/types/ai";
   import { toast } from "svelte-sonner";
-  import { Card } from "../ui/card";
-  import ChatPanel from "./chat/ChatPanel.svelte";
-  import DocumentEditor from "./document/DocumentEditor.svelte";
+  import { Card } from "$lib/components/ui/card";
+  import ChatPanel from "$lib/components/sections/chat/ChatPanel.svelte";
+  import DocumentEditor from "$lib/components/sections/document/DocumentEditor.svelte";
 
   interface Props {
     documentContent: string;
