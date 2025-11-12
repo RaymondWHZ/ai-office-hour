@@ -1,13 +1,8 @@
 import { generateObject } from "ai";
-import { createAnthropic } from "@ai-sdk/anthropic";
 import { chatRequestSchema, aiResponseSchema } from "$lib/types/ai";
 import { SYSTEM_PROMPT } from "$lib/constants/prompts";
 import type { RequestHandler } from "./$types";
-import { CLAUDE_API_KEY } from "$env/static/private";
-
-const anthropic = createAnthropic({
-  apiKey: CLAUDE_API_KEY,
-});
+import { anthropic } from "$lib/ai";
 
 export const POST: RequestHandler = async ({ request }) => {
   try {

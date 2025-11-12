@@ -11,15 +11,11 @@
   import SessionSwitcher from "$lib/components/sections/views/SessionSwitcher.svelte";
   import { untrack } from "svelte";
   import WelcomeView from "$lib/components/sections/views/WelcomeView.svelte";
+  import { extractText, getDocumentProxy } from "unpdf";
+  import Loader from "$lib/components/ui/loader/loader.svelte";
 
-  const createEmptySession = () => ({
-    documentContent: "",
-    chatHistory: [],
-    inputValue: "",
-  });
-
-  const createExampleSession = () => ({
-    documentContent: SAMPLE_CONTENT,
+  const createSessionDate = (documentContent: string = "") => ({
+    documentContent,
     chatHistory: [],
     inputValue: "",
   });
@@ -53,6 +49,37 @@
       createSession(currentSession);
     }
   });
+
+  let uploading = $state(false);
+
+  const handleUploadFile = async (file: File) => {
+    uploading = true;
+
+    try {
+      // Either fetch a PDF file from the web or load it from the file system
+      const buffer = await file.arrayBuffer();
+
+      // Then, load the PDF file into a PDF.js document
+      const pdf = await getDocumentProxy(new Uint8Array(buffer));
+
+      // Finally, extract the text from the PDF file
+      const { text } = await extractText(pdf, { mergePages: false });
+
+      // Send the extracted text to the backend for formatting
+      const response = await fetch("/api/format", {
+        method: "POST",
+        body: text.join(""),
+      });
+
+      // Extract the formatted text from the response
+      const { data } = await response.json();
+
+      // Create a new session with the extracted text
+      currentSession = createSessionDate(data);
+    } finally {
+      uploading = false;
+    }
+  };
 </script>
 
 <div class="flex h-screen flex-col">
@@ -73,7 +100,13 @@
     </div>
   </div>
 
-  {#if currentSession}
+  {#if uploading}
+    <div class="flex flex-1 flex-col items-center">
+      <div class="mt-[15vh] flex items-center gap-2">
+        <Loader /> Uploading and processing your document...
+      </div>
+    </div>
+  {:else if currentSession}
     <TutoringView
       bind:documentContent={currentSession.documentContent}
       bind:chatHistory={currentSession.chatHistory}
@@ -81,8 +114,10 @@
     />
   {:else}
     <WelcomeView
-      onStartEmpty={() => (currentSession = createEmptySession())}
-      onStartExample={() => (currentSession = createExampleSession())}
+      onUploadFile={handleUploadFile}
+      onStartEmpty={() => (currentSession = createSessionDate())}
+      onStartExample={() =>
+        (currentSession = createSessionDate(SAMPLE_CONTENT))}
     />
   {/if}
 </div>
