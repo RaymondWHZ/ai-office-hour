@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { UIMessage } from "ai";
 
 // Zod schemas for runtime validation
 export const editOperationSchema = z.object({
@@ -137,3 +138,16 @@ export const extractExplanationFromMessage = (message: Message): string => {
 
   return "";
 };
+
+export type TutorMessage = UIMessage<
+  never,
+  {
+    edit_document: {
+      edits: EditOperation[];
+      reasoning: string;
+    };
+    generate_options: {
+      options: Option[];
+    };
+  }
+>;

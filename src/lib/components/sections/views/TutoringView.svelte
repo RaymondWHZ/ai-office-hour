@@ -11,6 +11,7 @@
   import { onMount } from "svelte";
   import { START_OPTIONS } from "$lib/constants/startOptions";
   import { SquareCheck } from "@lucide/svelte";
+  import type { TutorMessage } from "$lib/types/ai";
 
   interface Props {
     documentContent: string;
@@ -22,20 +23,18 @@
   let messagesContainer: HTMLDivElement;
 
   // Initialize Chat instance with onData callback to handle tool results
-  const chat = new Chat({
+  const chat = new Chat<TutorMessage>({
     onData: (dataPart) => {
-      // Handle edit_document tool results
-      if (dataPart.type === "data-edit_document" && dataPart.data) {
-        const data = dataPart.data as any;
-        if (data.edits && Array.isArray(data.edits)) {
-          try {
-            documentContent = applyEdits(documentContent, data.edits);
-          } catch (editError) {
-            console.error("Error applying edits:", editError);
-            toast.error("Failed to apply some edits to the document", {
-              richColors: true,
-            });
-          }
+      // Handle edit_document tool results (now typesafe)
+      if (dataPart.type === "data-edit_document") {
+        const data = dataPart.data;
+        try {
+          documentContent = applyEdits(documentContent, data.edits);
+        } catch (editError) {
+          console.error("Error applying edits:", editError);
+          toast.error("Failed to apply some edits to the document", {
+            richColors: true,
+          });
         }
       }
     },
@@ -195,26 +194,30 @@
                   {/if}
                 </Card>
               {:else if part.type === "tool-edit_document"}
-                <Card class="flex flex-row items-center gap-3">
-                  {#if part.state === "input-streaming"}
-                    <!-- Loading: Generating edits -->
+                {#if part.state === "input-streaming"}
+                  <!-- Loading: Generating edits -->
+                  <Card class="flex flex-row items-center gap-3">
                     <Loader />
                     <span class="font-medium">Editing document...</span>
-                  {:else}
-                    <!-- Edit success indicator -->
-                    <SquareCheck />
-                    <span class="font-medium">
-                      Document updated successfully
-                    </span>
-                  {/if}
-                </Card>
-              {:else if part.type === "tool-generate_options"}
-                {@const options =
-                  "output" in part
-                    ? (part.output?.options as
-                        | Array<{ label: string; value: string }>
-                        | undefined)
-                    : undefined}
+                  </Card>
+                {:else}
+                  <!-- Edit success indicator -->
+                  <Card class="flex flex-col gap-2">
+                    <div class="flex flex-row items-center gap-3">
+                      <SquareCheck />
+                      <span class="font-medium">
+                        Document updated successfully
+                      </span>
+                    </div>
+                    <p class="m-0 text-sm text-gray-600">
+                      {part.output?.reasoning}
+                    </p>
+                  </Card>
+                {/if}
+              {:else if part.type === "tool-edit_document"}{:else if part.type === "tool-generate_options"}
+                {@const options = part.output?.options as
+                  | Array<{ label: string; value: string }>
+                  | undefined}
                 {@const isLastMessage =
                   messageIndex === chat.messages.length - 1}
 

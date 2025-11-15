@@ -4,11 +4,14 @@ import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
-  type UIMessage,
   stepCountIs,
 } from "ai";
 import { z } from "zod";
-import { editOperationSchema, optionSchema } from "$lib/types/ai";
+import {
+  editOperationSchema,
+  optionSchema,
+  type TutorMessage,
+} from "$lib/types/ai";
 import { SYSTEM_PROMPT } from "$lib/constants/prompts";
 import type { RequestHandler } from "./$types";
 import { anthropic } from "$lib/ai";
@@ -18,10 +21,12 @@ export const POST: RequestHandler = async ({ request }) => {
     const {
       messages,
       documentContent,
-    }: { messages: UIMessage[]; documentContent?: string } =
-      await request.json();
+    }: {
+      messages: TutorMessage[];
+      documentContent?: string;
+    } = await request.json();
 
-    const stream = createUIMessageStream({
+    const stream = createUIMessageStream<TutorMessage>({
       execute: ({ writer }) => {
         // Define tools for document editing and option generation
         const tools = {
