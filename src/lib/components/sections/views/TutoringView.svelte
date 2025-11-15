@@ -49,12 +49,14 @@
     chat.status === "streaming" || chat.status === "submitted",
   );
 
+  // Derive the last part of the last assistant message
   const lastPart = $derived.by(() => {
     const lastMessage = chat.messages[chat.messages.length - 1];
     if (!lastMessage || lastMessage.role !== "assistant") return null;
     return lastMessage.parts[lastMessage.parts.length - 1];
   });
 
+  // Derive if the last part is in a loading state
   const lastPartIsLoading = $derived.by(() => {
     if (!lastPart) return false;
     const status = "state" in lastPart ? lastPart.state : undefined;
@@ -87,6 +89,7 @@
     }
   };
 
+  // Handle Enter key for sending messages
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -94,7 +97,8 @@
     }
   };
 
-  const handleOptionClick = (value: string) => {
+  // Handle clicking on an option
+  const handleClickOption = (value: string) => {
     if (!isLoading) {
       inputValue = value;
       handleSend();
@@ -103,13 +107,13 @@
 
   // Auto-scroll to bottom when new messages arrive
   $effect(() => {
-    void chat.messages.length;
-
+    void lastPart;
     if (messagesContainer) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
   });
 
+  // Initial scroll to bottom on mount
   onMount(() => {
     if (messagesContainer) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -141,7 +145,7 @@
         Chat
       </h2>
     </div>
-    <div class="flex h-full flex-col">
+    <div class="flex h-full flex-col overflow-hidden">
       <div
         class="flex flex-1 flex-col gap-4 overflow-y-auto p-6"
         bind:this={messagesContainer}
@@ -162,7 +166,7 @@
               {#each START_OPTIONS as option}
                 <Card
                   class="cursor-pointer transition-all select-none hover:shadow-md"
-                  onclick={() => handleOptionClick(option.prompt)}
+                  onclick={() => handleClickOption(option.prompt)}
                 >
                   <span class="text-lg font-semibold">{option.title}</span>
                   <span class="text-sm">{option.description}</span>
@@ -228,7 +232,7 @@
                   <div class="flex flex-wrap gap-2">
                     {#each options as option}
                       <Button
-                        onclick={() => handleOptionClick(option.value)}
+                        onclick={() => handleClickOption(option.value)}
                         disabled={isLoading || !isLastMessage}
                         variant="outline"
                       >
