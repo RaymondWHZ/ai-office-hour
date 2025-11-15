@@ -21,11 +21,6 @@ export const POST: RequestHandler = async ({ request }) => {
     }: { messages: UIMessage[]; documentContent?: string } =
       await request.json();
 
-    console.log(
-      "Document content:",
-      documentContent || "No document content provided",
-    );
-
     const stream = createUIMessageStream({
       execute: ({ writer }) => {
         // Define tools for document editing and option generation
@@ -46,8 +41,6 @@ export const POST: RequestHandler = async ({ request }) => {
                 ),
             }),
             execute: async ({ edits, reasoning }) => {
-              console.log(`Executing document edits: ${reasoning}`);
-
               // Send edit data to client via data part - transient so it's not stored in history
               writer.write({
                 type: "data-edit_document",
@@ -79,8 +72,6 @@ export const POST: RequestHandler = async ({ request }) => {
                 ),
             }),
             execute: async ({ options }) => {
-              console.log(`Generated ${options.length} follow-up options`);
-
               return {
                 success: true,
                 options,

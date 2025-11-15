@@ -24,14 +24,11 @@
   // Initialize Chat instance with onData callback to handle tool results
   const chat = new Chat({
     onData: (dataPart) => {
-      console.log("Received data part:", dataPart);
-
       // Handle edit_document tool results
       if (dataPart.type === "data-edit_document" && dataPart.data) {
         const data = dataPart.data as any;
         if (data.edits && Array.isArray(data.edits)) {
           try {
-            console.log("Applying edits from onData:", data.edits);
             documentContent = applyEdits(documentContent, data.edits);
           } catch (editError) {
             console.error("Error applying edits:", editError);
