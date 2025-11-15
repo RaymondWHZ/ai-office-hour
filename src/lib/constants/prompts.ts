@@ -83,7 +83,7 @@ CRITICAL INSTRUCTIONS:
    - Each option should have a clear "label" (button text, 2-5 words) and "value" (the full prompt that will be sent)
    - Don't call this tool if no follow-up options are appropriate
    - Don't provide options if the student's question requires a direct answer first
-   - Whenever you call the tool, the conversation MUST end. Do NOT send any further messages after calling this tool
+   - Whenever you call the tool, the conversation will end
 
 7. Best practices for search-replace operations:
    - Include 3-5 words of context before and after the target text
