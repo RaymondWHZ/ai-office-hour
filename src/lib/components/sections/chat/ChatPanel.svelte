@@ -1,6 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import type { Message } from "$lib/types/ai";
+  import {
+    extractExplanationFromMessage,
+    extractOptionsFromMessage,
+  } from "$lib/types/ai";
   import Markdown from "$lib/components/renderers/Markdown.svelte";
   import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
@@ -11,6 +15,7 @@
   interface Props {
     messages: Message[];
     isLoading: boolean;
+    loadingState?: "idle" | "thinking" | "editing" | "generating-options";
     inputValue?: string;
     onsend: (message: string) => void;
   }
@@ -18,37 +23,39 @@
   let {
     messages,
     isLoading,
+    loadingState = "idle",
     inputValue = $bindable(""),
     onsend,
   }: Props = $props();
 
-  // eslint-disable-next-line no-unassigned-vars
-  let messagesContainer: HTMLDivElement | undefined;
+  let messagesContainer: HTMLDivElement;
 
-  function handleSend() {
+  const handleSend = () => {
     const trimmed = inputValue.trim();
     if (trimmed && !isLoading) {
       onsend(trimmed);
       inputValue = "";
     }
-  }
+  };
 
-  function handleKeyDown(e: KeyboardEvent) {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  }
+  };
 
-  function handleOptionClick(value: string) {
+  const handleOptionClick = (value: string) => {
     if (!isLoading) {
       onsend(value);
     }
-  }
+  };
 
   // Auto-scroll to bottom when new messages arrive
   $effect(() => {
-    if (messagesContainer && messages.length > 0) {
+    void messages.length;
+
+    if (messagesContainer) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
   });
@@ -78,7 +85,7 @@
         <div class="flex flex-col gap-3 sm:flex-row">
           {#each START_OPTIONS as option}
             <Card
-              class="cursor-pointer select-none"
+              class="cursor-pointer transition-all select-none hover:shadow-md"
               onclick={() => handleOptionClick(option.prompt)}
             >
               <span class="text-lg font-semibold">{option.title}</span>
@@ -93,6 +100,14 @@
       {@const isLastAssistantMessage =
         message.role === "assistant" &&
         index === messages.findLastIndex((m) => m.role === "assistant")}
+      {@const options =
+        message.role === "assistant" ? extractOptionsFromMessage(message) : []}
+      {@const displayText =
+        message.role === "assistant"
+          ? extractExplanationFromMessage(message)
+          : message.content}
+      {@const hasContent = displayText.trim().length > 0}
+
       <div class="flex flex-col gap-2">
         <div
           class="text-xs font-semibold tracking-wide uppercase {message.role ===
@@ -102,19 +117,22 @@
         >
           {message.role === "user" ? "You" : "AI Teaching Assistant"}
         </div>
-        <Card>
-          {#if message.role === "assistant"}
-            <Markdown
-              class="prose max-w-none"
-              value={message.content.explanation}
-            />
-          {:else}
-            {message.content}
-          {/if}
-        </Card>
-        {#if message.role === "assistant" && message.content.options && message.content.options.length > 0}
+
+        <!-- Only show message card if there's content -->
+        {#if hasContent}
+          <Card>
+            {#if message.role === "assistant"}
+              <Markdown class="prose max-w-none" value={displayText} />
+            {:else}
+              {displayText}
+            {/if}
+          </Card>
+        {/if}
+
+        <!-- Options -->
+        {#if message.role === "assistant" && options.length > 0}
           <div class="mt-3 flex flex-wrap gap-2">
-            {#each message.content.options as option}
+            {#each options as option}
               <Button
                 onclick={() => handleOptionClick(option.value)}
                 disabled={isLoading || !isLastAssistantMessage}
@@ -128,14 +146,21 @@
       </div>
     {/each}
 
+    <!-- Loading indicator beneath all messages (like Claude Code) -->
     {#if isLoading}
-      <div class="flex flex-col gap-2">
-        <div
-          class="text-xs font-semibold tracking-wide text-emerald-600 uppercase"
-        >
-          AI Teaching Assistant
-        </div>
+      <div class="flex items-center gap-2 px-2 py-3 text-sm text-gray-500">
         <Loader />
+        <span>
+          {#if loadingState === "thinking"}
+            Thinking...
+          {:else if loadingState === "editing"}
+            Editing document...
+          {:else if loadingState === "generating-options"}
+            Generating options...
+          {:else}
+            Processing...
+          {/if}
+        </span>
       </div>
     {/if}
   </div>

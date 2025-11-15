@@ -1,55 +1,26 @@
 <script lang="ts">
-  import {
-    sessionState,
-    createSession,
-    updateSession,
-    type SessionData,
-    getActiveSession,
-  } from "$lib/stores/sessionStore.svelte";
   import { SAMPLE_CONTENT } from "$lib/constants/sampleContent";
   import TutoringView from "$lib/components/sections/views/TutoringView.svelte";
   import SessionSwitcher from "$lib/components/sections/views/SessionSwitcher.svelte";
-  import { untrack } from "svelte";
   import WelcomeView from "$lib/components/sections/views/WelcomeView.svelte";
   import { extractText, getDocumentProxy } from "unpdf";
   import Loader from "$lib/components/ui/loader/loader.svelte";
+  import type { Message } from "$lib/types/ai";
 
-  const createSessionDate = (documentContent: string = "") => ({
+  // In-memory session state (no persistence)
+  type SessionData = {
+    documentContent: string;
+    chatHistory: Message[];
+    inputValue: string;
+  };
+
+  const createSessionData = (documentContent: string = ""): SessionData => ({
     documentContent,
     chatHistory: [],
     inputValue: "",
   });
 
   let currentSession = $state<SessionData | undefined>();
-  const activeSessionId = $derived(sessionState.activeSessionId);
-
-  $effect(() => {
-    void sessionState.activeSessionId;
-    currentSession = untrack(() => getActiveSession());
-  });
-
-  $effect(() => {
-    if (!currentSession) return;
-
-    // Reference properties to track changes
-    void currentSession.chatHistory;
-    void currentSession.documentContent;
-    void currentSession.inputValue;
-
-    if (untrack(() => activeSessionId)) {
-      // Debounced update for existing session
-      const timer = setTimeout(() => {
-        if (activeSessionId && currentSession) {
-          updateSession(activeSessionId, currentSession);
-        }
-      }, 500);
-      return () => clearTimeout(timer);
-    } else if (currentSession.chatHistory.length > 0) {
-      // If in a new session and there's content, create a new session
-      createSession(currentSession);
-    }
-  });
-
   let uploading = $state(false);
 
   const handleUploadFile = async (file: File) => {
@@ -75,7 +46,7 @@
       const { data } = await response.json();
 
       // Create a new session with the extracted text
-      currentSession = createSessionDate(data);
+      currentSession = createSessionData(data);
     } finally {
       uploading = false;
     }
@@ -107,17 +78,13 @@
       </div>
     </div>
   {:else if currentSession}
-    <TutoringView
-      bind:documentContent={currentSession.documentContent}
-      bind:chatHistory={currentSession.chatHistory}
-      bind:inputValue={currentSession.inputValue}
-    />
+    <TutoringView bind:documentContent={currentSession.documentContent} />
   {:else}
     <WelcomeView
       onUploadFile={handleUploadFile}
-      onStartEmpty={() => (currentSession = createSessionDate())}
+      onStartEmpty={() => (currentSession = createSessionData())}
       onStartExample={() =>
-        (currentSession = createSessionDate(SAMPLE_CONTENT))}
+        (currentSession = createSessionData(SAMPLE_CONTENT))}
     />
   {/if}
 </div>

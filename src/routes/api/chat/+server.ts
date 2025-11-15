@@ -1,58 +1,150 @@
-import { generateObject } from "ai";
-import { chatRequestSchema, aiResponseSchema } from "$lib/types/ai";
+import {
+  streamText,
+  tool,
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  type UIMessage,
+  stepCountIs,
+} from "ai";
+import { z } from "zod";
+import { editOperationSchema, optionSchema } from "$lib/types/ai";
 import { SYSTEM_PROMPT } from "$lib/constants/prompts";
 import type { RequestHandler } from "./$types";
 import { anthropic } from "$lib/ai";
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    // Parse and validate request body
-    const body = await request.json();
-    const validatedRequest = chatRequestSchema.parse(body);
+    const {
+      messages,
+      documentContent,
+    }: { messages: UIMessage[]; documentContent?: string } =
+      await request.json();
 
-    const { documentContent, userQuestion, chatHistory } = validatedRequest;
+    console.log(
+      "Document content:",
+      documentContent || "No document content provided",
+    );
 
-    // Construct the user message with document context
-    const userMessage = `
+    const stream = createUIMessageStream({
+      execute: ({ writer }) => {
+        // Define tools for document editing and option generation
+        const tools = {
+          update_state: tool({
+            description:
+              "Updates the UI loading indicator (e.g., 'Editing document...'). This is NOT the end of your response - you MUST continue generating text and calling other tools after this. Call this before edit_document or generate_options to give users immediate feedback while you work.",
+            inputSchema: z.object({
+              state: z
+                .enum(["thinking", "editing", "generating-options"])
+                .describe(
+                  "The current state: 'thinking' for general processing, 'editing' before making document changes, 'generating-options' before creating follow-up questions",
+                ),
+            }),
+            execute: async ({ state }) => {
+              console.log(`Updating UI state to: ${state}`);
+
+              // Send loading state update
+              writer.write({
+                type: "data-loading-state",
+                data: { state },
+                transient: true,
+              });
+
+              return {
+                state,
+                nextStep: "Continue your work",
+              };
+            },
+          }),
+          edit_document: tool({
+            description:
+              "Apply edits to the student's document. Call this at an appropriate point during the conversation, like a TA would write while explaining. You can start with brief explanation, then edit the document, then continue explaining.",
+            inputSchema: z.object({
+              edits: z
+                .array(editOperationSchema)
+                .describe(
+                  "Array of search-replace operations. Each edit should include enough context (3-5 words before and after) to uniquely identify the text to replace.",
+                ),
+              reasoning: z
+                .string()
+                .describe(
+                  "Brief explanation of why you're making these edits (for logging/debugging)",
+                ),
+            }),
+            execute: async ({ edits, reasoning }) => {
+              console.log(`Executing document edits: ${reasoning}`);
+
+              // Send edit data to client via data part - transient so it's not stored in history
+              writer.write({
+                type: "data-edit_document",
+                data: {
+                  edits,
+                  reasoning,
+                },
+                transient: true,
+              });
+
+              // Return the edits for the tool result
+              return {
+                success: true,
+                edits,
+                reasoning,
+              };
+            },
+          }),
+          generate_options: tool({
+            description:
+              "Generate follow-up question options for the student. Call this AFTER your explanation is complete to provide interactive follow-up paths.",
+            inputSchema: z.object({
+              options: z
+                .array(optionSchema)
+                .min(2)
+                .max(4)
+                .describe(
+                  "Array of 2-4 follow-up options. Each should have a concise label (2-5 words) and a complete question value.",
+                ),
+            }),
+            execute: async ({ options }) => {
+              console.log(`Generated ${options.length} follow-up options`);
+
+              return {
+                success: true,
+                options,
+              };
+            },
+          }),
+        };
+
+        // Convert UI messages to model messages
+        const modelMessages = convertToModelMessages(messages);
+
+        // Add document context to the system message
+        const systemMessage = `${SYSTEM_PROMPT}
 
 Current Document Content:
 
 \`\`\`
-${documentContent}
-\`\`\`
+${documentContent || "No document provided"}
+\`\`\``;
 
-Student Newest Question: ${userQuestion}
+        // Call AI API using Vercel AI SDK with streaming
+        const result = streamText({
+          model: anthropic("claude-sonnet-4-5"),
+          system: systemMessage,
+          messages: modelMessages,
+          temperature: 0.7,
+          tools,
+          maxRetries: 3,
+          stopWhen: stepCountIs(5),
+        });
 
-`;
-
-    const transformedChatHistory = chatHistory.map((message) =>
-      message.role === "assistant"
-        ? {
-            role: "assistant" as const,
-            content:
-              "Previous output in json format: " +
-              JSON.stringify(message.content),
-          }
-        : message,
-    );
-
-    // Call AI API using Vercel AI SDK
-    const { object } = await generateObject({
-      model: anthropic("claude-sonnet-4-5"),
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...transformedChatHistory,
-        { role: "user", content: userMessage },
-      ],
-      temperature: 0.7,
-      schema: aiResponseSchema,
+        // Merge the streamText result into our UI message stream
+        writer.merge(result.toUIMessageStream());
+      },
     });
 
-    // Return the structured response
-    return new Response(JSON.stringify(object), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Return streaming response
+    return createUIMessageStreamResponse({ stream });
   } catch (error) {
     console.error("API Error:", error);
 

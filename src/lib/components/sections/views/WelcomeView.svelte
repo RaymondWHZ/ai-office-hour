@@ -1,10 +1,5 @@
 <script lang="ts">
   import * as Command from "$lib/components/ui/command";
-  import {
-    formatSessionName,
-    sessionState,
-    switchSession,
-  } from "$lib/stores/sessionStore.svelte";
   import { FileIcon, Lightbulb, Upload } from "@lucide/svelte";
 
   interface Props {
@@ -29,7 +24,7 @@
     <Command.Input placeholder="Search for an option..." autofocus />
     <Command.List>
       <Command.Empty>No results found.</Command.Empty>
-      <Command.Group heading="New Session">
+      <Command.Group heading="Get Started">
         <Command.Item class="p-0">
           <label class="flex w-full items-center gap-2 px-2 py-1.5">
             <input class="hidden" type="file" accept="pdf/*" bind:files />
@@ -42,14 +37,6 @@
         <Command.Item onclick={onStartExample}>
           <Lightbulb /> Use an example
         </Command.Item>
-      </Command.Group>
-      <Command.Separator />
-      <Command.Group heading="Previous Sessions">
-        {#each sessionState.sessions as session}
-          <Command.Item onclick={() => switchSession(session.id)}>
-            {formatSessionName(session)}
-          </Command.Item>
-        {/each}
       </Command.Group>
     </Command.List>
   </Command.Root>
