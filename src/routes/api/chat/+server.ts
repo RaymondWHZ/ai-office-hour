@@ -30,32 +30,6 @@ export const POST: RequestHandler = async ({ request }) => {
       execute: ({ writer }) => {
         // Define tools for document editing and option generation
         const tools = {
-          update_state: tool({
-            description:
-              "Updates the UI loading indicator (e.g., 'Editing document...'). This is NOT the end of your response - you MUST continue generating text and calling other tools after this. Call this before edit_document or generate_options to give users immediate feedback while you work.",
-            inputSchema: z.object({
-              state: z
-                .enum(["thinking", "editing", "generating-options"])
-                .describe(
-                  "The current state: 'thinking' for general processing, 'editing' before making document changes, 'generating-options' before creating follow-up questions",
-                ),
-            }),
-            execute: async ({ state }) => {
-              console.log(`Updating UI state to: ${state}`);
-
-              // Send loading state update
-              writer.write({
-                type: "data-loading-state",
-                data: { state },
-                transient: true,
-              });
-
-              return {
-                state,
-                nextStep: "Continue your work",
-              };
-            },
-          }),
           edit_document: tool({
             description:
               "Apply edits to the student's document. Call this at an appropriate point during the conversation, like a TA would write while explaining. You can start with brief explanation, then edit the document, then continue explaining.",

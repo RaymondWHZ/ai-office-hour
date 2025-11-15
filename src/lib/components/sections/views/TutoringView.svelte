@@ -1,10 +1,5 @@
 <script lang="ts">
   import { applyEdits } from "$lib/documentEditor";
-  import type { Message } from "$lib/types/ai";
-  import {
-    extractExplanationFromMessage,
-    extractOptionsFromMessage,
-  } from "$lib/types/ai";
   import { toast } from "svelte-sonner";
   import { Card } from "$lib/components/ui/card";
   import { Textarea } from "$lib/components/ui/textarea";
@@ -15,6 +10,7 @@
   import { Chat } from "@ai-sdk/svelte";
   import { onMount } from "svelte";
   import { START_OPTIONS } from "$lib/constants/startOptions";
+  import { SquareCheck } from "@lucide/svelte";
 
   interface Props {
     documentContent: string;
@@ -25,24 +21,10 @@
   let inputValue = $state("");
   let messagesContainer: HTMLDivElement;
 
-  // Track detailed loading states
-  let loadingState = $state<
-    "idle" | "thinking" | "editing" | "generating-options"
-  >("idle");
-
   // Initialize Chat instance with onData callback to handle tool results
   const chat = new Chat({
     onData: (dataPart) => {
       console.log("Received data part:", dataPart);
-
-      // Handle loading state updates from API
-      if (dataPart.type === "data-loading-state" && dataPart.data) {
-        const data = dataPart.data as any;
-        if (data.state) {
-          loadingState = data.state;
-          console.log("Loading state updated to:", data.state);
-        }
-      }
 
       // Handle edit_document tool results
       if (dataPart.type === "data-edit_document" && dataPart.data) {
@@ -62,76 +44,22 @@
     },
   });
 
-  // Watch chat status and update loading state
-  $effect(() => {
-    const status = chat.status;
-
-    if (status === "ready") {
-      // Reset to idle when chat is done
-      loadingState = "idle";
-    } else if (status === "streaming" || status === "submitted") {
-      // Set to thinking when starting
-      if (loadingState === "idle") {
-        loadingState = "thinking";
-      }
-    }
-  });
-
-  // Convert Chat messages to our Message format for display
-  const displayMessages = $derived(
-    chat.messages.map((msg) => {
-      if (msg.role === "user") {
-        const textPart = msg.parts.find((p) => p.type === "text");
-        return {
-          role: "user" as const,
-          content: textPart && "text" in textPart ? textPart.text : "",
-        };
-      } else if (msg.role === "assistant") {
-        const textPart = msg.parts.find((p) => p.type === "text");
-        const textContent = textPart && "text" in textPart ? textPart.text : "";
-
-        const toolInvocations = msg.parts
-          .filter((p) => p.type.startsWith("tool-"))
-          .map((part: any) => {
-            if ("toolCallId" in part && "toolName" in part) {
-              return {
-                toolCallId: part.toolCallId,
-                toolName: part.toolName,
-                args: ("input" in part ? part.input : {}) as Record<
-                  string,
-                  unknown
-                >,
-                result: ("output" in part ? part.output : undefined) as
-                  | Record<string, unknown>
-                  | undefined,
-                state: ("output" in part ? "result" : "call") as
-                  | "call"
-                  | "result"
-                  | "partial-call",
-              };
-            }
-            return null;
-          })
-          .filter(Boolean);
-
-        return {
-          role: "assistant" as const,
-          content: textContent,
-          toolInvocations:
-            toolInvocations.length > 0 ? (toolInvocations as any) : undefined,
-        };
-      }
-      return {
-        role: "system" as const,
-        content: "",
-      };
-    }),
-  );
-
   // Derive loading state
   const isLoading = $derived(
     chat.status === "streaming" || chat.status === "submitted",
   );
+
+  const lastPart = $derived.by(() => {
+    const lastMessage = chat.messages[chat.messages.length - 1];
+    if (!lastMessage || lastMessage.role !== "assistant") return null;
+    return lastMessage.parts[lastMessage.parts.length - 1];
+  });
+
+  const lastPartIsLoading = $derived.by(() => {
+    if (!lastPart) return false;
+    const status = "state" in lastPart ? lastPart.state : undefined;
+    return status === "streaming" || status === "input-streaming";
+  });
 
   // Handle sending messages
   const handleSend = () => {
@@ -175,7 +103,7 @@
 
   // Auto-scroll to bottom when new messages arrive
   $effect(() => {
-    void displayMessages.length;
+    void chat.messages.length;
 
     if (messagesContainer) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -218,7 +146,7 @@
         class="flex flex-1 flex-col gap-4 overflow-y-auto p-6"
         bind:this={messagesContainer}
       >
-        {#if displayMessages.length === 0}
+        {#if chat.messages.length === 0}
           <div
             class="flex h-full flex-col items-center justify-center gap-6 px-6"
           >
@@ -244,21 +172,7 @@
           </div>
         {/if}
 
-        {#each displayMessages as message, index}
-          {@const isLastAssistantMessage =
-            message.role === "assistant" &&
-            index ===
-              displayMessages.findLastIndex((m) => m.role === "assistant")}
-          {@const options =
-            message.role === "assistant"
-              ? extractOptionsFromMessage(message as any)
-              : []}
-          {@const displayText =
-            message.role === "assistant"
-              ? extractExplanationFromMessage(message as any)
-              : message.content}
-          {@const hasContent = displayText.trim().length > 0}
-
+        {#each chat.messages as message, messageIndex}
           <div class="flex flex-col gap-2">
             <div
               class="text-xs font-semibold tracking-wide uppercase {message.role ===
@@ -269,49 +183,69 @@
               {message.role === "user" ? "You" : "AI Teaching Assistant"}
             </div>
 
-            <!-- Only show message card if there's content -->
-            {#if hasContent}
-              <Card>
-                {#if message.role === "assistant"}
-                  <Markdown class="prose max-w-none" value={displayText} />
-                {:else}
-                  {displayText}
-                {/if}
-              </Card>
-            {/if}
+            <!-- Render each part in order -->
+            {#each message.parts as part}
+              {#if part.type === "text" && "text" in part && part.text.trim()}
+                <Card>
+                  {#if message.role === "assistant"}
+                    <Markdown class="prose max-w-none" value={part.text} />
+                  {:else}
+                    {part.text}
+                  {/if}
+                </Card>
+              {:else if part.type === "tool-edit_document"}
+                <Card class="flex flex-row items-center gap-3">
+                  {#if part.state === "input-streaming"}
+                    <!-- Loading: Generating edits -->
+                    <Loader />
+                    <span class="font-medium">Editing document...</span>
+                  {:else}
+                    <!-- Edit success indicator -->
+                    <SquareCheck />
+                    <span class="font-medium">
+                      Document updated successfully
+                    </span>
+                  {/if}
+                </Card>
+              {:else if part.type === "tool-generate_options"}
+                {@const options =
+                  "output" in part
+                    ? (part.output?.options as
+                        | Array<{ label: string; value: string }>
+                        | undefined)
+                    : undefined}
+                {@const isLastMessage =
+                  messageIndex === chat.messages.length - 1}
 
-            <!-- Options -->
-            {#if message.role === "assistant" && options.length > 0}
-              <div class="mt-3 flex flex-wrap gap-2">
-                {#each options as option}
-                  <Button
-                    onclick={() => handleOptionClick(option.value)}
-                    disabled={isLoading || !isLastAssistantMessage}
-                    variant="outline"
-                  >
-                    {option.label}
-                  </Button>
-                {/each}
-              </div>
-            {/if}
+                {#if part.state === "input-streaming"}
+                  <!-- Loading: Generating options -->
+                  <Card class="flex flex-row items-center gap-3">
+                    <Loader />
+                    <span class="font-medium">Generating options...</span>
+                  </Card>
+                {:else if options && options.length > 0}
+                  <!-- Options -->
+                  <div class="flex flex-wrap gap-2">
+                    {#each options as option}
+                      <Button
+                        onclick={() => handleOptionClick(option.value)}
+                        disabled={isLoading || !isLastMessage}
+                        variant="outline"
+                      >
+                        {option.label}
+                      </Button>
+                    {/each}
+                  </div>
+                {/if}
+              {/if}
+            {/each}
           </div>
         {/each}
 
-        <!-- Loading indicator -->
-        {#if isLoading}
-          <div class="flex items-center gap-2 px-2 py-3 text-sm text-gray-500">
+        <!-- Global loading indicator -->
+        {#if isLoading && !lastPartIsLoading}
+          <div class="px-2 py-3">
             <Loader />
-            <span>
-              {#if loadingState === "thinking"}
-                Thinking...
-              {:else if loadingState === "editing"}
-                Editing document...
-              {:else if loadingState === "generating-options"}
-                Generating options...
-              {:else}
-                Processing...
-              {/if}
-            </span>
           </div>
         {/if}
       </div>

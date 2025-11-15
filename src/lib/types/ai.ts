@@ -106,8 +106,15 @@ export const extractOptionsFromMessage = (message: Message): Option[] => {
     const optionsTool = message.toolInvocations.find(
       (inv) => inv.toolName === "generate_options",
     );
-    if (optionsTool && optionsTool.args && "options" in optionsTool.args) {
-      return optionsTool.args.options as Option[];
+    if (optionsTool) {
+      // Check in args first (tool call)
+      if (optionsTool.args && "options" in optionsTool.args) {
+        return optionsTool.args.options as Option[];
+      }
+      // Check in result (tool execution result)
+      if (optionsTool.result && "options" in optionsTool.result) {
+        return optionsTool.result.options as Option[];
+      }
     }
   }
 
