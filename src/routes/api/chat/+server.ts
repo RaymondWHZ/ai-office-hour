@@ -103,7 +103,7 @@ ${documentContent || "No document provided"}
 
         // Call AI API using Vercel AI SDK with streaming
         const result = streamText({
-          model: anthropic("claude-sonnet-4-5"),
+          model: anthropic("claude-haiku-4-5"),
           system: systemMessage,
           messages: modelMessages,
           temperature: 0.7,
