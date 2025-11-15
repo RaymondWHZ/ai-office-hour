@@ -11,7 +11,8 @@
   import { onMount } from "svelte";
   import { START_OPTIONS } from "$lib/constants/startOptions";
   import { SquareCheck } from "@lucide/svelte";
-  import type { TutorMessage } from "$lib/types/ai";
+  import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
+  import type { TutorMessage } from "$lib/tools";
 
   interface Props {
     documentContent: string;
@@ -24,16 +25,46 @@
 
   // Initialize Chat instance with onData callback to handle tool results
   const chat = new Chat<TutorMessage>({
-    onData: (dataPart) => {
-      // Handle edit_document tool results (now typesafe)
-      if (dataPart.type === "data-edit_document") {
-        const data = dataPart.data;
+    sendAutomaticallyWhen: ({ messages }) => {
+      // If the last message is generating options, do not continue automatically
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage || lastMessage.role !== "assistant") return false;
+      const lastPart = lastMessage.parts[lastMessage.parts.length - 1];
+      if (lastPart.type === "tool-generate_options") return false;
+
+      return lastAssistantMessageIsCompleteWithToolCalls({ messages });
+    },
+
+    // run client-side tools that are automatically executed:
+    async onToolCall({ toolCall }) {
+      // Check if it's a dynamic tool first for proper type narrowing
+      if (toolCall.dynamic) {
+        return;
+      }
+
+      if (toolCall.toolName === "edit_document") {
+        const { edits, summary } = toolCall.input;
         try {
-          documentContent = applyEdits(documentContent, data.edits);
+          documentContent = applyEdits(documentContent, edits);
+          chat.addToolOutput({
+            tool: "edit_document",
+            toolCallId: toolCall.toolCallId,
+            output: {
+              success: true,
+              summary,
+            },
+          });
         } catch (editError) {
-          console.error("Error applying edits:", editError);
-          toast.error("Failed to apply some edits to the document", {
-            richColors: true,
+          chat.addToolOutput({
+            tool: "edit_document",
+            toolCallId: toolCall.toolCallId,
+            output: {
+              success: false,
+              error:
+                editError instanceof Error
+                  ? editError.message
+                  : "Failed to apply edits.",
+            },
           });
         }
       }
@@ -201,23 +232,33 @@
                     <span class="font-medium">Editing document...</span>
                   </Card>
                 {:else}
-                  <!-- Edit success indicator -->
+                  {@const result = part.output}
+                  <!-- Edit result indicator -->
                   <Card class="flex flex-col gap-2">
-                    <div class="flex flex-row items-center gap-3">
-                      <SquareCheck />
-                      <span class="font-medium">
-                        Document updated successfully
-                      </span>
-                    </div>
-                    <p class="m-0 text-sm text-gray-600">
-                      {part.output?.reasoning}
-                    </p>
+                    {#if result?.success}
+                      <div class="flex flex-row items-center gap-3">
+                        <SquareCheck />
+                        <span class="font-medium">
+                          Document updated successfully
+                        </span>
+                      </div>
+                      <p class="m-0 text-sm text-gray-600">
+                        {result.summary}
+                      </p>
+                    {:else}
+                      <div class="flex flex-row items-center gap-3">
+                        <span class="font-medium text-red-600">
+                          Failed to update document
+                        </span>
+                      </div>
+                      <p class="m-0 text-sm text-gray-600">
+                        {result?.error ?? "No response from edit tool."}
+                      </p>
+                    {/if}
                   </Card>
                 {/if}
-              {:else if part.type === "tool-edit_document"}{:else if part.type === "tool-generate_options"}
-                {@const options = part.output?.options as
-                  | Array<{ label: string; value: string }>
-                  | undefined}
+              {:else if part.type === "tool-generate_options"}
+                {@const options = part.output?.options}
                 {@const isLastMessage =
                   messageIndex === chat.messages.length - 1}
 
