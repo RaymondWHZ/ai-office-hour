@@ -1,8 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount, type Component } from "svelte";
-  import { Editor } from "@tiptap/core";
   import { StarterKit } from "@tiptap/starter-kit";
-  import BubbleMenu from "@tiptap/extension-bubble-menu";
   import CommentNode from "./Comment";
   import LatexNode from "./Latex";
   import { commentState, latexState } from "./document.svelte";
@@ -20,6 +18,13 @@
   } from "@lucide/svelte";
   import { cn } from "$lib/utils";
   import Markdown from "$lib/components/renderers/Markdown.svelte";
+  import type { Readable } from "svelte/store";
+  import {
+    createEditor,
+    Editor,
+    EditorContent,
+    BubbleMenu,
+  } from "svelte-tiptap";
 
   interface Props {
     value?: string;
@@ -27,27 +32,13 @@
 
   let { value = $bindable("") }: Props = $props();
 
-  // References for DOM elements to use
-  let bubbleMenu = $state<HTMLElement>();
-  let element = $state<HTMLElement>();
-
   // State to hold the editor instance
-  let editorState = $state<{ editor: Editor | null }>({ editor: null });
+  let editor = $state() as Readable<Editor>;
 
   // Initialize the editor on component mount
   onMount(() => {
-    editorState.editor = new Editor({
-      element: element,
-      extensions: [
-        StarterKit,
-        CommentNode,
-        LatexNode,
-        BubbleMenu.configure({
-          element: bubbleMenu,
-          shouldShow: ({ editor, state }) =>
-            !state.selection.empty && !editor.isActive("latex"),
-        }),
-      ],
+    editor = createEditor({
+      extensions: [StarterKit, CommentNode, LatexNode],
       editorProps: {
         attributes: {
           class: "prose focus:outline-none max-w-full h-full",
@@ -57,26 +48,23 @@
       onTransaction: ({ editor }) => {
         // Sync editor content to external value
         value = editor.getHTML();
-
-        // Increment the state signal to force a re-render
-        editorState = { editor };
       },
     });
   });
 
   // Sync external value changes to the editor content
   $effect(() => {
-    if (editorState.editor && value !== editorState.editor.getHTML()) {
-      editorState.editor.commands.setContent(value);
+    if ($editor && value !== $editor.getHTML()) {
+      $editor.commands.setContent(value);
     }
   });
 
   // Clean up the editor instance on component destroy
   onDestroy(() => {
-    editorState.editor?.destroy();
+    $editor?.destroy();
   });
 
-  // Comment tooltip state\
+  // Comment tooltip state
   let lazyAnchor = $state<HTMLElement | undefined>(undefined);
   const getCommentOpen = () => !!commentState.dom || !!lazyAnchor;
 
@@ -121,7 +109,7 @@
 
 <div class="relative flex h-full flex-col overflow-auto">
   <!-- Block menu -->
-  {#if editorState.editor}
+  {#if $editor}
     <div
       class="sticky top-0 z-10 flex items-center gap-1 bg-linear-to-b from-white via-white via-80% to-transparent px-32 pt-8 pb-12"
     >
@@ -149,9 +137,9 @@
       )}
         {@render toolbarButton(
           title,
-          editorState.editor?.isActive(name, attributes) ?? false,
+          $editor?.isActive(name, attributes) ?? false,
           () =>
-            editorState.editor
+            $editor
               ?.chain()
               .focus()
               .toggleNode(name, "paragraph", attributes)
@@ -167,75 +155,75 @@
 
       {@render toolbarButton(
         List,
-        editorState.editor?.isActive("bulletList") ?? false,
-        () => editorState.editor?.chain().focus().toggleBulletList().run(),
+        $editor?.isActive("bulletList") ?? false,
+        () => $editor?.chain().focus().toggleBulletList().run(),
       )}
       {@render toolbarButton(
         ListOrdered,
-        editorState.editor?.isActive("orderedList") ?? false,
-        () => editorState.editor?.chain().focus().toggleOrderedList().run(),
+        $editor?.isActive("orderedList") ?? false,
+        () => $editor?.chain().focus().toggleOrderedList().run(),
       )}
 
       <span class="mx-1 text-gray-300">|</span>
 
       {@render toolbarButton(
         TextQuote,
-        editorState.editor?.isActive("blockquote") ?? false,
-        () => editorState.editor?.chain().focus().toggleBlockquote().run(),
+        $editor?.isActive("blockquote") ?? false,
+        () => $editor?.chain().focus().toggleBlockquote().run(),
       )}
       {@render toolbarButton(
         Code,
-        editorState.editor?.isActive("codeBlock") ?? false,
-        () => editorState.editor?.chain().focus().toggleCodeBlock().run(),
+        $editor?.isActive("codeBlock") ?? false,
+        () => $editor?.chain().focus().toggleCodeBlock().run(),
       )}
 
       <span class="mx-1 text-gray-300">|</span>
 
       {@render toolbarButton(SeparatorHorizontal, false, () =>
-        editorState.editor?.chain().focus().setHorizontalRule().run(),
+        $editor?.chain().focus().setHorizontalRule().run(),
       )}
     </div>
   {/if}
 
   <!-- Bubble menu -->
-  <div
-    class="transition-visibility invisible absolute z-20 flex border bg-white p-1 text-sm shadow-sm transition-opacity"
-    bind:this={bubbleMenu}
-  >
-    {#if editorState.editor}
-      {#snippet markButton(
-        title: HTMLElement | string,
-        classNames: string,
-        name: string,
-        attributes?: Record<string, any>,
-      )}
-        <button
-          class={cn(
-            "px-2 font-medium",
-            classNames,
-            editorState.editor?.isActive(name, attributes)
-              ? "bg-accent"
-              : "hover:bg-accent",
-          )}
-          onclick={() =>
-            editorState.editor
-              ?.chain()
-              .focus()
-              .toggleMark(name, attributes)
-              .run()}
-          class:active={editorState.editor?.isActive(name, attributes)}
-        >
-          {title}
-        </button>
-      {/snippet}
+  {#if $editor}
+    <BubbleMenu
+      class="transition-visibility invisible absolute z-20 flex border bg-white p-1 text-sm shadow-sm transition-opacity"
+      editor={$editor}
+      shouldShow={({ editor, state }) =>
+        !state.selection.empty && !editor.isActive("latex")}
+    >
+      <div>
+        {#snippet markButton(
+          title: HTMLElement | string,
+          classNames: string,
+          name: string,
+          attributes?: Record<string, any>,
+        )}
+          <button
+            class={cn(
+              "px-2 font-medium",
+              classNames,
+              $editor?.isActive(name, attributes)
+                ? "bg-accent"
+                : "hover:bg-accent",
+            )}
+            onclick={() =>
+              $editor?.chain().focus().toggleMark(name, attributes).run()}
+            class:active={$editor?.isActive(name, attributes)}
+          >
+            {title}
+          </button>
+        {/snippet}
 
-      {@render markButton("Bold", "font-bold", "bold")}
-      {@render markButton("Italic", "italic", "italic")}
-      {@render markButton("Strike", "line-through", "strike")}
-      {@render markButton("`Code`", "font-mono pt-1", "code")}
-    {/if}
-  </div>
+        {@render markButton("Bold", "font-bold", "bold")}
+        {@render markButton("Italic", "italic", "italic")}
+        {@render markButton("Strike", "line-through", "strike")}
+        {@render markButton("`Code`", "font-mono pt-1", "code")}
+      </div>
+    </BubbleMenu>
+  {/if}
 
   <!-- Actual document -->
-  <div class="flex-1 px-32 pb-6" bind:this={element}></div>
+  <EditorContent class="flex-1 px-32 pb-6" editor={$editor} />
 </div>
