@@ -6,7 +6,7 @@ const SESSION_STORAGE_KEY = "sessions";
 
 export interface SessionData {
   documentContent: string;
-  chatHistory: TutorMessage[];
+  messages: TutorMessage[];
   inputValue: string;
 }
 
@@ -112,7 +112,7 @@ export const deleteSession = (sessionId: string) => {
 export function upsertSession(updates: SessionData) {
   if (sessionState.activeSessionId) {
     updateSession(sessionState.activeSessionId, updates);
-  } else {
+  } else if (updates.messages.length >= 2) {
     createSession(updates);
   }
 }

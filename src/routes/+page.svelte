@@ -6,6 +6,12 @@
   import { extractText, getDocumentProxy } from "unpdf";
   import Loader from "$lib/components/ui/loader/loader.svelte";
   import type { TutorMessage } from "$lib/tools";
+  import {
+    getActiveSession,
+    sessionState,
+    upsertSession,
+  } from "$lib/stores/sessionStore.svelte.ts";
+  import { untrack } from "svelte";
 
   // In-memory session state (no persistence)
   type SessionData = {
@@ -22,6 +28,7 @@
 
   let currentSession = $state<SessionData | undefined>();
   let uploading = $state(false);
+  let isGenerating = $state(false);
 
   const handleUploadFile = async (file: File) => {
     uploading = true;
@@ -51,6 +58,27 @@
       uploading = false;
     }
   };
+
+  // Load from storage when active session changes
+  $effect(() => {
+    void sessionState.activeSessionId; // track changes
+    currentSession = untrack(() => getActiveSession());
+  });
+
+  // Debounced save for documentContent (200ms)
+  $effect(() => {
+    if (!currentSession || isGenerating) return;
+
+    void currentSession.documentContent; // track changes
+    void currentSession.inputValue; // track changes
+
+    const session = currentSession;
+    const timer = setTimeout(() => {
+      upsertSession(session);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  });
 </script>
 
 <div class="flex h-screen flex-col">
@@ -82,6 +110,7 @@
       bind:documentContent={currentSession.documentContent}
       bind:messages={currentSession.messages}
       bind:inputValue={currentSession.inputValue}
+      bind:isGenerating
     />
   {:else}
     <WelcomeView

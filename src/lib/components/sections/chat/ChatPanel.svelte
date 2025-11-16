@@ -16,12 +16,14 @@
     documentContent?: string;
     messages?: TutorMessage[];
     inputValue?: string;
+    isGenerating?: boolean;
   }
 
   let {
     documentContent = $bindable(""),
     messages = $bindable([]),
     inputValue = $bindable(""),
+    isGenerating = $bindable(false),
   }: Props = $props();
 
   // eslint-disable-next-line no-unassigned-vars -- This will be binded to the messages container div
@@ -77,10 +79,10 @@
     },
   });
 
-  // Derive loading state
-  const isLoading = $derived(
-    chat.status === "streaming" || chat.status === "submitted",
-  );
+  // Update isGenerating state
+  $effect(() => {
+    isGenerating = chat.status === "streaming" || chat.status === "submitted";
+  });
 
   // Derive the last part of the last assistant message
   const lastPart = $derived.by(() => {
@@ -99,7 +101,7 @@
   // Handle sending messages
   const handleSend = () => {
     const trimmed = inputValue.trim();
-    if (trimmed && !isLoading) {
+    if (trimmed && !isGenerating) {
       chat.sendMessage(
         { text: trimmed },
         {
@@ -122,7 +124,7 @@
 
   // Handle clicking on an option
   const handleClickOption = (value: string) => {
-    if (!isLoading) {
+    if (!isGenerating) {
       inputValue = value;
       handleSend();
     }
@@ -161,7 +163,7 @@
       <div class="flex flex-col gap-3 sm:flex-row">
         {#each START_OPTIONS as option}
           <Card
-            class="cursor-pointer transition-all select-none hover:shadow-md"
+            class="cursor-pointer select-none"
             onclick={() => handleClickOption(option.prompt)}
           >
             <span class="text-lg font-semibold">{option.title}</span>
@@ -242,7 +244,7 @@
               {#each options as option}
                 <Button
                   onclick={() => handleClickOption(option.value)}
-                  disabled={isLoading || !isLastMessage}
+                  disabled={isGenerating || !isLastMessage}
                   variant="outline"
                 >
                   {option.label}
@@ -256,21 +258,21 @@
   {/each}
 
   <!-- Global loading indicator -->
-  {#if isLoading && !lastPartIsLoading}
+  {#if isGenerating && !lastPartIsLoading && lastPart?.type !== "tool-generate_options"}
     <div class="px-2 py-3">
       <Loader />
     </div>
   {/if}
 </div>
 
-<div class="flex gap-3 border-t bg-white p-6">
+<div class="flex gap-3 border-t p-6">
   <Textarea
     bind:value={inputValue}
     onkeydown={handleKeyDown}
     placeholder="Ask a question..."
-    disabled={isLoading}
+    disabled={isGenerating}
   />
-  <Button onclick={handleSend} disabled={isLoading || !inputValue.trim()}>
+  <Button onclick={handleSend} disabled={isGenerating || !inputValue.trim()}>
     Ask
   </Button>
 </div>

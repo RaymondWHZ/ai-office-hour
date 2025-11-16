@@ -1,5 +1,10 @@
 <script lang="ts">
   import * as Command from "$lib/components/ui/command";
+  import {
+    formatSessionName,
+    sessionState,
+    switchSession,
+  } from "$lib/stores/sessionStore.svelte";
   import { FileIcon, Lightbulb, Upload } from "@lucide/svelte";
 
   interface Props {
@@ -38,6 +43,15 @@
           <Lightbulb /> Use an example
         </Command.Item>
       </Command.Group>
+      {#if sessionState.sessions.length > 0}
+        <Command.Group heading="Previous Sessions">
+          {#each sessionState.sessions as session}
+            <Command.Item onclick={() => switchSession(session.id)}>
+              {formatSessionName(session)}
+            </Command.Item>
+          {/each}
+        </Command.Group>
+      {/if}
     </Command.List>
   </Command.Root>
 </div>

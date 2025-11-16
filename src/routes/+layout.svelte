@@ -3,8 +3,17 @@
   import "../app.css";
   import favicon from "$lib/assets/favicon.svg";
   import { Toaster } from "$lib/components/ui/sonner";
+  import { onMount } from "svelte";
+  import { loadFromStorage } from "$lib/stores/sessionStore.svelte.ts";
 
   let { children } = $props();
+
+  let loading = $state(true);
+
+  onMount(() => {
+    loadFromStorage();
+    loading = false;
+  });
 </script>
 
 <svelte:head>
@@ -13,4 +22,6 @@
 
 <Toaster />
 
-{@render children()}
+{#if !loading}
+  {@render children()}
+{/if}

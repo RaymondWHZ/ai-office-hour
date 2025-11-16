@@ -8,12 +8,14 @@
     documentContent: string;
     messages?: TutorMessage[];
     inputValue?: string;
+    isGenerating?: boolean;
   }
 
   let {
     documentContent = $bindable(""),
     messages = $bindable([]),
     inputValue = $bindable(""),
+    isGenerating = $bindable(false),
   }: Props = $props();
 </script>
 
@@ -42,7 +44,12 @@
       </h2>
     </div>
     <div class="flex h-full flex-col overflow-hidden">
-      <ChatPanel bind:documentContent bind:messages bind:inputValue />
+      <ChatPanel
+        bind:documentContent
+        bind:messages
+        bind:inputValue
+        bind:isGenerating
+      />
     </div>
   </div>
 </div>
