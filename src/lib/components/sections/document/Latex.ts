@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes, nodeInputRule } from "@tiptap/core";
 import { latexState } from "./document.svelte";
 import katex from "katex";
 
@@ -14,6 +14,17 @@ const LatexNode = Node.create({
         parseHTML: (element) => element.getAttribute("data"),
       },
     };
+  },
+  addInputRules() {
+    return [
+      nodeInputRule({
+        find: /(\$([^$]+)\$)/,
+        type: this.type,
+        getAttributes: (match) => {
+          return { latex: match[2] };
+        },
+      }),
+    ];
   },
   parseHTML() {
     return [
