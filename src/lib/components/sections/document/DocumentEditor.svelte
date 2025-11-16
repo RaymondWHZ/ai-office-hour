@@ -7,12 +7,14 @@
   import * as Tooltip from "$lib/components/ui/tooltip";
   import * as Popover from "$lib/components/ui/popover";
   import { Input } from "$lib/components/ui/input";
+  import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
   import {
     Check,
     Code,
     List,
     ListOrdered,
+    MessageSquareHeart,
     SeparatorHorizontal,
     TextQuote,
   } from "@lucide/svelte";
@@ -28,9 +30,10 @@
 
   interface Props {
     value?: string;
+    onAskTutor?: (selectedText: string, question: string) => void;
   }
 
-  let { value = $bindable("") }: Props = $props();
+  let { value = $bindable(""), onAskTutor }: Props = $props();
 
   // State to hold the editor instance
   let editor = $state() as Readable<Editor>;
@@ -76,6 +79,57 @@
       setTimeout(() => latexState.update(latexState.latex), 10);
     }
   };
+
+  // Ask Tutor popup state
+  let askTutorOpen = $state(false);
+  let askTutorAnchor = $state<HTMLElement | undefined>(undefined);
+  let selectedText = $state("");
+  let questionInput = $state("");
+
+  const handleAskTutorClick = () => {
+    if ($editor) {
+      const { from, to } = $editor.state.selection;
+      selectedText = $editor.state.doc.textBetween(from, to);
+
+      // Get the coordinates for positioning
+      const coords = $editor.view.coordsAtPos(from);
+      const tempAnchor = document.createElement("div");
+      tempAnchor.style.position = "absolute";
+      tempAnchor.style.left = `${coords.left}px`;
+      tempAnchor.style.top = `${coords.top}px`;
+      document.body.appendChild(tempAnchor);
+      askTutorAnchor = tempAnchor;
+
+      askTutorOpen = true;
+    }
+  };
+
+  const handleAskSubmit = () => {
+    if (questionInput.trim() && selectedText) {
+      onAskTutor?.(selectedText, questionInput);
+      askTutorOpen = false;
+      questionInput = "";
+      selectedText = "";
+
+      // Clean up anchor
+      if (askTutorAnchor) {
+        document.body.removeChild(askTutorAnchor);
+        askTutorAnchor = undefined;
+      }
+    }
+  };
+
+  const closeAskTutor = () => {
+    askTutorOpen = false;
+    questionInput = "";
+    selectedText = "";
+
+    // Clean up anchor
+    if (askTutorAnchor) {
+      document.body.removeChild(askTutorAnchor);
+      askTutorAnchor = undefined;
+    }
+  };
 </script>
 
 <Tooltip.Provider>
@@ -104,6 +158,47 @@
       <Input bind:value={latexState.latex} placeholder="LaTeX" />
       <Button type="submit"><Check /></Button>
     </form>
+  </Popover.Content>
+</Popover.Root>
+
+<Popover.Root bind:open={askTutorOpen}>
+  <Popover.Content
+    class="w-[400px] p-4 shadow-sm"
+    customAnchor={askTutorAnchor}
+    sideOffset={8}
+    align="start"
+  >
+    <div class="flex flex-col gap-3">
+      <!-- Selected text preview -->
+      <div
+        class="max-h-20 overflow-y-auto border-l-2 border-gray-300 pl-2 text-xs text-gray-500"
+      >
+        {selectedText.length > 100
+          ? selectedText.slice(0, 100) + "..."
+          : selectedText}
+      </div>
+
+      <!-- Question input -->
+      <Textarea
+        bind:value={questionInput}
+        placeholder="Ask a question about this text..."
+        rows={3}
+        onkeydown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleAskSubmit();
+          }
+        }}
+      />
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-2">
+        <Button variant="outline" onclick={closeAskTutor}>Cancel</Button>
+        <Button onclick={handleAskSubmit} disabled={!questionInput.trim()}>
+          Ask
+        </Button>
+      </div>
+    </div>
   </Popover.Content>
 </Popover.Root>
 
@@ -202,7 +297,7 @@
         )}
           <button
             class={cn(
-              "px-2 font-medium",
+              "px-2",
               classNames,
               $editor?.isActive(name, attributes)
                 ? "bg-accent"
@@ -220,6 +315,15 @@
         {@render markButton("Italic", "italic", "italic")}
         {@render markButton("Strike", "line-through", "strike")}
         {@render markButton("`Code`", "font-mono pt-1", "code")}
+
+        <span class="mx-1 text-gray-300">|</span>
+
+        <button
+          class="flex items-center gap-1 px-2 hover:bg-accent"
+          onclick={handleAskTutorClick}
+        >
+          <MessageSquareHeart class="size-4" /> Ask Tutor
+        </button>
       </div>
     </BubbleMenu>
   {/if}

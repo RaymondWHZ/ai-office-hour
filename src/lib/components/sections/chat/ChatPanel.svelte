@@ -22,8 +22,8 @@
   let {
     documentContent = $bindable(""),
     messages = $bindable([]),
-    inputValue = $bindable(""),
-    isGenerating = $bindable(false),
+    inputValue = "",
+    isGenerating = false,
   }: Props = $props();
 
   // eslint-disable-next-line no-unassigned-vars -- This will be binded to the messages container div
@@ -103,35 +103,25 @@
     return status === "streaming" || status === "input-streaming";
   });
 
-  // Handle sending messages
-  const handleSend = () => {
-    const trimmed = inputValue.trim();
-    if (trimmed && !isGenerating) {
+  // Export function for parent component to trigger message submission
+  export const submitMessage = (message?: string) => {
+    const textToSend = message ?? inputValue.trim();
+    if (textToSend && !isGenerating) {
       chat.sendMessage(
-        { text: trimmed },
+        { text: textToSend },
         {
           body: {
             documentContent,
           },
         },
       );
-      inputValue = "";
-    }
-  };
-
-  // Handle Enter key for sending messages
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
     }
   };
 
   // Handle clicking on an option
   const handleClickOption = (value: string) => {
     if (!isGenerating) {
-      inputValue = value;
-      handleSend();
+      submitMessage(value);
     }
   };
 
@@ -268,16 +258,4 @@
       <Loader />
     </div>
   {/if}
-</div>
-
-<div class="flex gap-3 border-t px-12 pt-6 pb-12">
-  <Textarea
-    bind:value={inputValue}
-    onkeydown={handleKeyDown}
-    placeholder="Ask a question..."
-    disabled={isGenerating}
-  />
-  <Button onclick={handleSend} disabled={isGenerating || !inputValue.trim()}>
-    Ask
-  </Button>
 </div>
