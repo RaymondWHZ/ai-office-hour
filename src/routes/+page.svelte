@@ -5,18 +5,18 @@
   import WelcomeView from "$lib/components/sections/views/WelcomeView.svelte";
   import { extractText, getDocumentProxy } from "unpdf";
   import Loader from "$lib/components/ui/loader/loader.svelte";
-  import type { Message } from "$lib/types/ai";
+  import type { TutorMessage } from "$lib/tools";
 
   // In-memory session state (no persistence)
   type SessionData = {
     documentContent: string;
-    chatHistory: Message[];
+    messages: TutorMessage[];
     inputValue: string;
   };
 
   const createSessionData = (documentContent: string = ""): SessionData => ({
     documentContent,
-    chatHistory: [],
+    messages: [],
     inputValue: "",
   });
 
@@ -78,7 +78,11 @@
       </div>
     </div>
   {:else if currentSession}
-    <TutoringView bind:documentContent={currentSession.documentContent} />
+    <TutoringView
+      bind:documentContent={currentSession.documentContent}
+      bind:messages={currentSession.messages}
+      bind:inputValue={currentSession.inputValue}
+    />
   {:else}
     <WelcomeView
       onUploadFile={handleUploadFile}

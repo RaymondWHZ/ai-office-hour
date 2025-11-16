@@ -1,4 +1,4 @@
-import type { Message } from "$lib/types/ai";
+import type { TutorMessage } from "$lib/tools";
 
 const SESSION_STORAGE_KEY = "sessions";
 
@@ -6,7 +6,7 @@ const SESSION_STORAGE_KEY = "sessions";
 
 export interface SessionData {
   documentContent: string;
-  chatHistory: Message[];
+  chatHistory: TutorMessage[];
   inputValue: string;
 }
 

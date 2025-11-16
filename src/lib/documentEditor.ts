@@ -1,4 +1,4 @@
-import type { EditOperation } from "$lib/types/ai";
+import type { EditOperation } from "$lib/tools";
 
 /**
  * Applies a series of edit operations to document content using search-replace.

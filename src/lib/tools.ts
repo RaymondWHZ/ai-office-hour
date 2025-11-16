@@ -1,6 +1,19 @@
 import { tool, type InferUITools, type UIMessage } from "ai";
 import z from "zod";
-import { editOperationSchema, optionSchema } from "./types/ai";
+
+export const editOperationSchema = z.object({
+  search: z.string(),
+  replace: z.string(),
+});
+
+export type EditOperation = z.infer<typeof editOperationSchema>;
+
+export const optionSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+});
+
+export type Option = z.infer<typeof optionSchema>;
 
 export const tools = {
   edit_document: tool({
