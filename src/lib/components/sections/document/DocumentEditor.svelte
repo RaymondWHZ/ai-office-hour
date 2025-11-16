@@ -3,11 +3,11 @@
   import { StarterKit } from "@tiptap/starter-kit";
   import CommentNode from "./Comment";
   import LatexNode from "./Latex";
+  import AskTutorPopup from "./AskTutorPopup.svelte";
   import { commentState, latexState } from "./document.svelte";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import * as Popover from "$lib/components/ui/popover";
   import { Input } from "$lib/components/ui/input";
-  import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
   import {
     Check,
@@ -84,7 +84,6 @@
   let askTutorOpen = $state(false);
   let askTutorAnchor = $state<HTMLElement | undefined>(undefined);
   let selectedText = $state("");
-  let questionInput = $state("");
 
   const handleAskTutorClick = () => {
     if ($editor) {
@@ -104,24 +103,20 @@
     }
   };
 
-  const handleAskSubmit = () => {
-    if (questionInput.trim() && selectedText) {
-      onAskTutor?.(selectedText, questionInput);
-      askTutorOpen = false;
-      questionInput = "";
-      selectedText = "";
+  const handleAskTutorSubmit = (text: string, question: string) => {
+    onAskTutor?.(text, question);
+    askTutorOpen = false;
+    selectedText = "";
 
-      // Clean up anchor
-      if (askTutorAnchor) {
-        document.body.removeChild(askTutorAnchor);
-        askTutorAnchor = undefined;
-      }
+    // Clean up anchor
+    if (askTutorAnchor) {
+      document.body.removeChild(askTutorAnchor);
+      askTutorAnchor = undefined;
     }
   };
 
-  const closeAskTutor = () => {
+  const handleAskTutorClose = () => {
     askTutorOpen = false;
-    questionInput = "";
     selectedText = "";
 
     // Clean up anchor
@@ -161,46 +156,13 @@
   </Popover.Content>
 </Popover.Root>
 
-<Popover.Root bind:open={askTutorOpen}>
-  <Popover.Content
-    class="w-[400px] p-4 shadow-sm"
-    customAnchor={askTutorAnchor}
-    sideOffset={8}
-    align="start"
-  >
-    <div class="flex flex-col gap-3">
-      <!-- Selected text preview -->
-      <div
-        class="max-h-20 overflow-y-auto border-l-2 border-gray-300 pl-2 text-xs text-gray-500"
-      >
-        {selectedText.length > 100
-          ? selectedText.slice(0, 100) + "..."
-          : selectedText}
-      </div>
-
-      <!-- Question input -->
-      <Textarea
-        bind:value={questionInput}
-        placeholder="Ask a question about this text..."
-        rows={3}
-        onkeydown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleAskSubmit();
-          }
-        }}
-      />
-
-      <!-- Buttons -->
-      <div class="flex justify-end gap-2">
-        <Button variant="outline" onclick={closeAskTutor}>Cancel</Button>
-        <Button onclick={handleAskSubmit} disabled={!questionInput.trim()}>
-          Ask
-        </Button>
-      </div>
-    </div>
-  </Popover.Content>
-</Popover.Root>
+<AskTutorPopup
+  bind:open={askTutorOpen}
+  {selectedText}
+  anchor={askTutorAnchor}
+  onSubmit={handleAskTutorSubmit}
+  onClose={handleAskTutorClose}
+/>
 
 <div class="relative flex h-full flex-col overflow-auto">
   <!-- Block menu -->

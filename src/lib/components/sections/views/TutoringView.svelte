@@ -1,10 +1,9 @@
 <script lang="ts">
   import DocumentEditor from "$lib/components/sections/document/DocumentEditor.svelte";
   import { Card } from "$lib/components/ui/card";
-  import { Textarea } from "$lib/components/ui/textarea";
-  import { Button } from "$lib/components/ui/button";
   import type { TutorMessage } from "$lib/tools";
   import ChatPanel from "../chat/ChatPanel.svelte";
+  import ChatInput from "../chat/ChatInput.svelte";
 
   interface Props {
     documentContent: string;
@@ -29,14 +28,6 @@
     if (trimmed && !isGenerating) {
       chatPanel?.submitMessage(trimmed);
       inputValue = "";
-    }
-  };
-
-  // Handle Enter key for sending messages
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
     }
   };
 
@@ -69,20 +60,11 @@
         {isGenerating}
       />
 
-      <div class="flex gap-3 border-t px-12 pt-6 pb-12">
-        <Textarea
-          bind:value={inputValue}
-          onkeydown={handleKeyDown}
-          placeholder="Ask a question..."
-          disabled={isGenerating}
-        />
-        <Button
-          onclick={handleSend}
-          disabled={isGenerating || !inputValue.trim()}
-        >
-          Ask
-        </Button>
-      </div>
+      <ChatInput
+        bind:value={inputValue}
+        disabled={isGenerating}
+        onSubmit={handleSend}
+      />
     </div>
   </div>
 </div>
