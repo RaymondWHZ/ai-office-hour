@@ -11,6 +11,7 @@
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
   import { applyEdits } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
+  import { sessionState } from "$lib/stores/sessionStore.svelte";
 
   interface Props {
     documentContent?: string;
@@ -77,6 +78,11 @@
         }
       }
     },
+  });
+
+  // Sync messages with parent component when active session or messages change
+  $effect(() => {
+    chat.messages = sessionState.activeSessionId ? messages : [];
   });
 
   // Update isGenerating state
