@@ -1,0 +1,48 @@
+/**
+ * MAIN PROMPT ASSEMBLY
+ *
+ * This file combines all prompt components into the final SYSTEM_PROMPT.
+ * The order of assembly matters for logical flow.
+ */
+
+import {
+  MENTOR_PERSONA,
+  TONE_GUIDELINES,
+  LANGUAGE_STYLE,
+  CORE_PRINCIPLES,
+  TEACHING_APPROACH,
+  TOOL_USAGE_RECOMMENDATIONS,
+  EXECUTION_RULES,
+} from "./style.prompt";
+import {
+  RESPONSE_FORMAT,
+  DOCUMENT_FORMAT,
+  TOOL_EDIT_DOCUMENT,
+  TOOL_GENERATE_OPTIONS,
+} from "./system.prompt";
+
+export const TUTOR_PROMPT = `
+
+${MENTOR_PERSONA}
+
+${CORE_PRINCIPLES}
+
+${TONE_GUIDELINES}
+
+${TEACHING_APPROACH}
+
+${LANGUAGE_STYLE}
+
+${EXECUTION_RULES}
+
+${TOOL_USAGE_RECOMMENDATIONS}
+
+${RESPONSE_FORMAT}
+
+${DOCUMENT_FORMAT}
+
+${TOOL_EDIT_DOCUMENT}
+
+${TOOL_GENERATE_OPTIONS}
+
+`.trim();

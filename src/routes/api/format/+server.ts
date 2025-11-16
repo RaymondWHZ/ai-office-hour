@@ -1,7 +1,7 @@
 import { generateText } from "ai";
 import type { RequestHandler } from "./$types";
 import { anthropic } from "$lib/ai";
-import { DOCUMENT_SPECS } from "$lib/constants/documentSpecs";
+import { DOCUMENT_FORMAT } from "$lib/constants/prompts/system.prompt";
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -11,11 +11,15 @@ export const POST: RequestHandler = async ({ request }) => {
     const { text } = await generateText({
       model: anthropic("claude-haiku-4-5"),
       prompt: `
-Following the following guideline:
+Following the following format:
 
-${DOCUMENT_SPECS}
+${DOCUMENT_FORMAT}
 
-Format the following markdown:
+Additional instruction:
+
+- Do not use comment in your output
+
+Format the following pdf extracted text into a well-structured document:
 
 ${body}
 `,

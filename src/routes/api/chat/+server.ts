@@ -1,5 +1,5 @@
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
-import { SYSTEM_PROMPT } from "$lib/constants/prompts";
+import { TUTOR_PROMPT } from "$lib/constants/prompts";
 import type { RequestHandler } from "./$types";
 import { anthropic } from "$lib/ai";
 import { tools } from "$lib/tools";
@@ -17,7 +17,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const modelMessages = convertToModelMessages(messages);
 
   // Add document context to the system message
-  const systemMessage = `${SYSTEM_PROMPT}
+  const systemMessage = `${TUTOR_PROMPT}
 
 Current Document Content:
 
