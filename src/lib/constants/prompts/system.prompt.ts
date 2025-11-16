@@ -31,6 +31,7 @@ TOOL USAGE - edit_document:
 - Call this tool to make edits to the document, follow the "Document Format Specifications"
 - Edit is done by replacing specific text segments with new content
 - Each edit must have a "search" string to locate the text and a "replace" string with the new content
+- You need to include a summary for the edits your are going to make
 - Include 3-5 words of context before and after the target text
 - If the text appears multiple times, include unique context
 - Preserve original formatting (spacing, capitalization, line breaks)
