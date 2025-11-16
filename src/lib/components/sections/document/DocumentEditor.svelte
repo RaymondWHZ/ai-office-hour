@@ -76,13 +76,9 @@
     editorState.editor?.destroy();
   });
 
-  // Comment tooltip state
-  const getCommentOpen = () => !!commentState.dom;
-  const setCommentOpen = (open: boolean) => {
-    if (!open) {
-      commentState.dom = undefined;
-    }
-  };
+  // Comment tooltip state\
+  let lazyAnchor = $state<HTMLElement | undefined>(undefined);
+  const getCommentOpen = () => !!commentState.dom || !!lazyAnchor;
 
   // Latex tooltip state
   const getLatexOpen = () => !!latexState.dom;
@@ -95,11 +91,13 @@
 </script>
 
 <Tooltip.Provider>
-  <Tooltip.Root bind:open={getCommentOpen, setCommentOpen}>
+  <Tooltip.Root bind:open={getCommentOpen, () => {}}>
     <Tooltip.Content
       class="shadow-sm"
-      customAnchor={commentState.dom}
-      sideOffset={8}
+      customAnchor={commentState.dom ?? lazyAnchor}
+      sideOffset={-1}
+      onmouseenter={() => (lazyAnchor = commentState.dom)}
+      onmouseleave={() => setTimeout(() => (lazyAnchor = undefined), 100)}
     >
       <Markdown value={commentState.comment} />
     </Tooltip.Content>

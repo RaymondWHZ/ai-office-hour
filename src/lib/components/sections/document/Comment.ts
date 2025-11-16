@@ -33,13 +33,17 @@ const CommentNode = Node.create({
   addNodeView() {
     return ({ node }) => {
       const dom = document.createElement("span");
-      dom.setAttribute("class", "underline bg-accent");
+      dom.setAttribute("class", "bg-accent");
+      let mouseOutTimer: number | undefined;
       dom.addEventListener("mouseover", () => {
+        clearTimeout(mouseOutTimer);
         commentState.dom = dom;
         commentState.comment = node.attrs.comment;
       });
       dom.addEventListener("mouseout", () => {
-        commentState.dom = undefined;
+        mouseOutTimer = window.setTimeout(() => {
+          commentState.dom = undefined;
+        }, 100);
       });
 
       const contentDOM = document.createElement("span");
