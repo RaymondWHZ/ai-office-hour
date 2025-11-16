@@ -19,31 +19,17 @@
   }: Props = $props();
 </script>
 
-<div class="grid flex-1 grid-cols-1 overflow-hidden md:grid-cols-2">
-  <div class="flex flex-col overflow-hidden border-r">
-    <div class="border-b px-8 py-6">
-      <h2
-        class="m-0 text-base font-semibold tracking-wide text-gray-700 uppercase"
-      >
-        Document
-      </h2>
-    </div>
-    <div class="flex-1 overflow-hidden p-6">
-      <Card class="h-full overflow-hidden p-0">
+<div class="mx-auto w-full flex-1 overflow-hidden">
+  <div class="flex h-full overflow-hidden">
+    <div
+      class="flex flex-1 flex-col items-center overflow-hidden p-6 md:col-span-3"
+    >
+      <Card class="h-full w-full max-w-7xl overflow-hidden p-0">
         <DocumentEditor bind:value={documentContent} />
       </Card>
     </div>
-  </div>
 
-  <div class="flex flex-col overflow-hidden">
-    <div class="border-b px-8 py-6">
-      <h2
-        class="m-0 text-base font-semibold tracking-wide text-gray-700 uppercase"
-      >
-        Chat
-      </h2>
-    </div>
-    <div class="flex h-full flex-col overflow-hidden">
+    <div class="flex w-lg flex-col overflow-hidden border-l xl:w-xl 2xl:w-3xl">
       <ChatPanel
         bind:documentContent
         bind:messages

@@ -147,7 +147,7 @@
 </script>
 
 <div
-  class="flex flex-1 flex-col gap-4 overflow-y-auto p-6"
+  class="flex flex-1 flex-col gap-4 overflow-y-auto px-12 py-6"
   bind:this={messagesContainer}
 >
   {#if chat.messages.length === 0}
@@ -265,7 +265,7 @@
   {/if}
 </div>
 
-<div class="flex gap-3 border-t p-6">
+<div class="flex gap-3 border-t px-12 pt-6 pb-12">
   <Textarea
     bind:value={inputValue}
     onkeydown={handleKeyDown}

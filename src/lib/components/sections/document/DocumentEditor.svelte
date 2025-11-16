@@ -125,7 +125,7 @@
   <!-- Block menu -->
   {#if editorState.editor}
     <div
-      class="sticky top-0 z-10 flex items-center gap-1 bg-linear-to-b from-white via-white via-80% to-transparent p-6 pb-12"
+      class="sticky top-0 z-10 flex items-center gap-1 bg-linear-to-b from-white via-white via-80% to-transparent px-32 pt-8 pb-12"
     >
       {#snippet toolbarButton(
         Title: string | Component,
@@ -239,5 +239,5 @@
   </div>
 
   <!-- Actual document -->
-  <div class="flex-1 px-6 pb-6" bind:this={element}></div>
+  <div class="flex-1 px-32 pb-6" bind:this={element}></div>
 </div>
