@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, type Component } from "svelte";
   import { Editor } from "@tiptap/core";
   import { StarterKit } from "@tiptap/starter-kit";
   import BubbleMenu from "@tiptap/extension-bubble-menu";
@@ -10,7 +10,14 @@
   import * as Popover from "$lib/components/ui/popover";
   import { Input } from "$lib/components/ui/input";
   import { Button } from "$lib/components/ui/button";
-  import { Check } from "@lucide/svelte";
+  import {
+    Check,
+    Code,
+    List,
+    ListOrdered,
+    SeparatorHorizontal,
+    TextQuote,
+  } from "@lucide/svelte";
   import { cn } from "$lib/utils";
   import Markdown from "$lib/components/renderers/Markdown.svelte";
 
@@ -118,29 +125,77 @@
   <!-- Block menu -->
   {#if editorState.editor}
     <div
-      class="sticky top-0 z-10 bg-linear-to-b from-white via-white via-80% to-transparent p-6 pb-12"
+      class="sticky top-0 z-10 flex items-center gap-1 bg-linear-to-b from-white via-white via-80% to-transparent p-6 pb-12"
     >
+      {#snippet toolbarButton(
+        Title: string | Component,
+        isActive: boolean,
+        onclick: () => void,
+      )}
+        <button
+          class={`px-1.5 ${isActive ? "bg-accent" : "hover:bg-accent"}`}
+          {onclick}
+        >
+          {#if typeof Title === "string"}
+            {Title}
+          {:else}
+            <Title class="p-0.5" />
+          {/if}
+        </button>
+      {/snippet}
+
       {#snippet nodeButton(
         title: string,
         name: string,
         attributes?: Record<string, any>,
       )}
-        <button
-          class={`px-1.5 ${editorState.editor?.isActive(name, attributes) ? "bg-accent" : "hover:bg-accent"}`}
-          onclick={() =>
+        {@render toolbarButton(
+          title,
+          editorState.editor?.isActive(name, attributes) ?? false,
+          () =>
             editorState.editor
               ?.chain()
               .focus()
               .toggleNode(name, "paragraph", attributes)
-              .run()}
-        >
-          {title}
-        </button>
+              .run(),
+        )}
       {/snippet}
 
       {@render nodeButton("H1", "heading", { level: 1 })}
       {@render nodeButton("H2", "heading", { level: 2 })}
       {@render nodeButton("H3", "heading", { level: 3 })}
+
+      <span class="mx-1 text-gray-300">|</span>
+
+      {@render toolbarButton(
+        List,
+        editorState.editor?.isActive("bulletList") ?? false,
+        () => editorState.editor?.chain().focus().toggleBulletList().run(),
+      )}
+      {@render toolbarButton(
+        ListOrdered,
+        editorState.editor?.isActive("orderedList") ?? false,
+        () => editorState.editor?.chain().focus().toggleOrderedList().run(),
+      )}
+
+      <span class="mx-1 text-gray-300">|</span>
+
+      {@render toolbarButton(
+        TextQuote,
+        editorState.editor?.isActive("blockquote") ?? false,
+        () => editorState.editor?.chain().focus().toggleBlockquote().run(),
+      )}
+      {@render toolbarButton(
+        Code,
+        editorState.editor?.isActive("codeBlock") ?? false,
+        () => editorState.editor?.chain().focus().toggleCodeBlock().run(),
+      )}
+
+      <span class="mx-1 text-gray-300">|</span>
+
+      {@render toolbarButton(SeparatorHorizontal, false, () =>
+        editorState.editor?.chain().focus().setHorizontalRule().run(),
+      )}
     </div>
   {/if}
 
