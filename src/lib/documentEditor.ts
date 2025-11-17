@@ -24,17 +24,7 @@ export function applyEdits(content: string, edits: EditOperation[]): string {
 
     if (!matches) {
       // No match found - skip this edit
-      console.warn(
-        `[DocumentEditor] Search text not found, skipping edit: "${search.substring(0, 50)}..."`,
-      );
-      continue;
-    }
-
-    if (matches.length > 1) {
-      // Multiple matches - replace first occurrence but warn
-      console.warn(
-        `[DocumentEditor] Multiple matches found (${matches.length}), replacing first occurrence: "${search.substring(0, 50)}..."`,
-      );
+      throw new Error(`Search text not found; no edits made`);
     }
 
     // Replace the first occurrence

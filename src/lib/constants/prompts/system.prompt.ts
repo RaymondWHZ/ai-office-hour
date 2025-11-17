@@ -25,6 +25,7 @@ Document Format Specifications
 - Only h1, h2, h3, p, ul, ol, li, code blocks are used; don't use other HTML tags
 - Use <latex data="mathematical expression"/> to add equations
 - Use <comment data="comment">words</comment> to add inline comments to words; $$ inline latex math syntax is supported in data attribute
+- Use <card>...</card> to wrap blocks of content that should be visually distinguished (like explanations, hints, etc.)
 - Remember this is a HTML format; no markdown syntax in the document (except in comment data attribute)`;
 
 export const TOOL_EDIT_DOCUMENT = `

@@ -219,10 +219,7 @@
 
           {#if part.state === "input-streaming"}
             <!-- Loading: Generating options -->
-            <Card class="flex flex-row items-center gap-3">
-              <Loader />
-              <span class="font-medium">Generating options...</span>
-            </Card>
+            <Loader />
           {:else if options && options.length > 0}
             <!-- Options -->
             <div class="flex flex-wrap gap-2">
@@ -244,8 +241,6 @@
 
   <!-- Global loading indicator -->
   {#if isGenerating && !lastPart}
-    <div class="px-2 py-3">
-      <Loader />
-    </div>
+    <Loader />
   {/if}
 </div>
