@@ -183,13 +183,13 @@
       <!-- Render each part in order -->
       {#each message.parts as part}
         {#if part.type === "text" && "text" in part && part.text.trim()}
-          <Card>
+          <div class="py-4">
             {#if message.role === "assistant"}
               <Markdown class="prose max-w-none" value={part.text} />
             {:else}
               {part.text}
             {/if}
-          </Card>
+          </div>
         {:else if part.type === "tool-edit_document"}
           {#if part.state === "input-streaming"}
             <!-- Loading: Generating edits -->
