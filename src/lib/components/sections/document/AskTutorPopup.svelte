@@ -4,33 +4,34 @@
   import { Button } from "$lib/components/ui/button";
 
   interface Props {
-    open?: boolean;
-    selectedText?: string;
-    anchor?: HTMLElement;
     onSubmit?: (selectedText: string, question: string) => void;
-    onClose?: () => void;
   }
 
-  let {
-    open = $bindable(false),
-    selectedText = "",
-    anchor = undefined,
-    onSubmit,
-    onClose,
-  }: Props = $props();
+  let { onSubmit }: Props = $props();
 
   let questionInput = $state("");
+  let currentAnchor = $state<HTMLElement>();
+  let currentSelectedText = $state("");
 
-  const handleSubmit = () => {
-    if (questionInput.trim() && selectedText) {
-      onSubmit?.(selectedText, questionInput);
-      questionInput = "";
-    }
-  };
+  export function open(anchor: HTMLElement, selectedText: string) {
+    currentAnchor = anchor;
+    currentSelectedText = selectedText;
+  }
 
   const handleClose = () => {
-    onClose?.();
-    questionInput = "";
+    currentAnchor = undefined;
+    setTimeout(() => {
+      currentSelectedText = "";
+      questionInput = "";
+    }, 200);
+  };
+
+  const handleSubmit = () => {
+    const trimmedQuestion = questionInput.trim();
+    if (currentSelectedText && trimmedQuestion) {
+      onSubmit?.(currentSelectedText, trimmedQuestion);
+      handleClose();
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -41,21 +42,21 @@
   };
 </script>
 
-<Popover.Root bind:open>
+<Popover.Root bind:open={() => !!currentAnchor, (v) => !v && handleClose()}>
   <Popover.Content
     class="w-[400px] p-4 shadow-sm"
-    customAnchor={anchor}
+    customAnchor={currentAnchor}
     sideOffset={8}
     align="start"
   >
     <div class="flex flex-col gap-3">
       <!-- Selected text preview -->
       <div
-        class="max-h-20 overflow-y-auto border-l-2 border-gray-300 pl-2 text-xs text-gray-500"
+        class="text-md max-h-20 overflow-y-auto border-l-2 border-gray-300 pl-2 text-gray-500"
       >
-        {selectedText.length > 100
-          ? selectedText.slice(0, 100) + "..."
-          : selectedText}
+        {currentSelectedText.length > 100
+          ? currentSelectedText.slice(0, 100) + "..."
+          : currentSelectedText}
       </div>
 
       <!-- Question input -->

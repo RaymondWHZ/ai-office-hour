@@ -66,44 +66,20 @@
   });
 
   // Ask Tutor popup state
+  let askTutorPopup = $state() as AskTutorPopup;
   let askTutorButton = $state() as HTMLButtonElement;
-  let askTutorOpen = $state(false);
-  let askTutorAnchor = $state<HTMLElement | undefined>(undefined);
-  let selectedText = $state("");
 
   const handleAskTutorClick = () => {
     const { from, to } = $editor.state.selection;
-    selectedText = $editor.state.doc.textBetween(from, to);
-    askTutorAnchor = askTutorButton;
-    askTutorOpen = true;
-  };
-
-  const handleAskTutorClose = () => {
-    askTutorOpen = false;
-
-    // Clean up at next tick
-    setTimeout(() => {
-      selectedText = "";
-      askTutorAnchor = undefined;
-    }, 200);
-  };
-
-  const handleAskTutorSubmit = (text: string, question: string) => {
-    onAskTutor?.(text, question);
-    handleAskTutorClose();
+    const selectedText = $editor.state.doc.textBetween(from, to);
+    askTutorPopup.open(askTutorButton, selectedText);
   };
 </script>
 
 <CommentPopup />
 <LatexPopup />
 
-<AskTutorPopup
-  bind:open={askTutorOpen}
-  {selectedText}
-  anchor={askTutorAnchor}
-  onSubmit={handleAskTutorSubmit}
-  onClose={handleAskTutorClose}
-/>
+<AskTutorPopup bind:this={askTutorPopup} onSubmit={onAskTutor} />
 
 <div class="relative flex h-full flex-col overflow-auto">
   <!-- Block menu -->
@@ -223,7 +199,7 @@
 
         <button
           bind:this={askTutorButton}
-          class="flex items-center gap-1 px-2 hover:bg-accent"
+          class="flex items-center gap-1 px-2 outline-none hover:bg-accent"
           onclick={handleAskTutorClick}
         >
           <MessageSquareHeart class="size-4" /> Ask Tutor
