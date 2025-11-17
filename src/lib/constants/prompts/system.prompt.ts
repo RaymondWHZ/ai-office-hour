@@ -9,7 +9,8 @@
 export const RESPONSE_FORMAT = `
 RESPONSE FORMAT:
 - Use markdown format
-- You may use $$ for inline math and $$$$ for block math in your markdown explanation
+- You may use $...$ for inline math in your markdown explanation
+- You can use $$...$$ for block math but avoid using it too often
 - Always leave at lease one space before and after dollar signs that surrounds the math expression for markdown to work correctly
 - Especially careful with punctuations, you need to leave a space before period, comma, bracket, etc. if the sentence ends with a math expression
 - For example, write "The result is $5$ ." instead of "The result is $5$."
