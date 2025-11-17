@@ -6,7 +6,7 @@
 </script>
 
 <NodeViewWrapper>
-  <Card class="w-fit px-4 py-0">
+  <Card class="w-fit px-8 py-0">
     <NodeViewContent />
   </Card>
 </NodeViewWrapper>
