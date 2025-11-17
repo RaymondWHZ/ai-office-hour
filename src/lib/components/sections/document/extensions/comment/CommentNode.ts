@@ -1,5 +1,5 @@
 import { Node, mergeAttributes } from "@tiptap/core";
-import { commentState } from "./document.svelte";
+import { commentState } from "./comment.svelte";
 
 const CommentNode = Node.create({
   name: "comment",

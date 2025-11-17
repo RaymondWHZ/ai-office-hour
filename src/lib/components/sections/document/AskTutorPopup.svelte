@@ -51,7 +51,7 @@
     <div class="flex flex-col gap-3">
       <!-- Selected text preview -->
       <div
-        class="border-l-2 border-gray-300 pl-2 text-xs text-gray-500 max-h-20 overflow-y-auto"
+        class="max-h-20 overflow-y-auto border-l-2 border-gray-300 pl-2 text-xs text-gray-500"
       >
         {selectedText.length > 100
           ? selectedText.slice(0, 100) + "..."
@@ -68,7 +68,7 @@
 
       <!-- Buttons -->
       <div class="flex justify-end gap-2">
-        <Button variant="outline" onclick={handleClose}> Cancel </Button>
+        <Button variant="outline" onclick={handleClose}>Cancel</Button>
         <Button onclick={handleSubmit} disabled={!questionInput.trim()}>
           Ask
         </Button>

@@ -1,17 +1,8 @@
 <script lang="ts">
   import { onDestroy, onMount, type Component } from "svelte";
   import { StarterKit } from "@tiptap/starter-kit";
-  import CommentNode from "./Comment";
-  import LatexNode from "./Latex";
-  import CardNode from "./CardNode";
   import AskTutorPopup from "./AskTutorPopup.svelte";
-  import { commentState, latexState } from "./document.svelte";
-  import * as Tooltip from "$lib/components/ui/tooltip";
-  import * as Popover from "$lib/components/ui/popover";
-  import { Input } from "$lib/components/ui/input";
-  import { Button } from "$lib/components/ui/button";
   import {
-    Check,
     Code,
     List,
     ListOrdered,
@@ -20,7 +11,6 @@
     TextQuote,
   } from "@lucide/svelte";
   import { cn } from "$lib/utils";
-  import Markdown from "$lib/components/renderers/Markdown.svelte";
   import type { Readable } from "svelte/store";
   import {
     createEditor,
@@ -28,6 +18,13 @@
     EditorContent,
     BubbleMenu,
   } from "svelte-tiptap";
+  import {
+    CardNode,
+    CommentNode,
+    CommentPopup,
+    LatexNode,
+    LatexPopup,
+  } from "./extensions";
 
   interface Props {
     value?: string;
@@ -68,94 +65,37 @@
     $editor?.destroy();
   });
 
-  // Comment tooltip state
-  let lazyAnchor = $state<HTMLElement | undefined>(undefined);
-  const getCommentOpen = () => !!commentState.dom || !!lazyAnchor;
-
-  // Latex tooltip state
-  const getLatexOpen = () => !!latexState.dom;
-  const setLatexOpen = (open: boolean) => {
-    if (!open) {
-      latexState.dom = undefined;
-      setTimeout(() => latexState.update(latexState.latex), 10);
-    }
-  };
-
   // Ask Tutor popup state
+  let askTutorButton = $state() as HTMLButtonElement;
   let askTutorOpen = $state(false);
   let askTutorAnchor = $state<HTMLElement | undefined>(undefined);
   let selectedText = $state("");
 
   const handleAskTutorClick = () => {
-    if ($editor) {
-      const { from, to } = $editor.state.selection;
-      selectedText = $editor.state.doc.textBetween(from, to);
-
-      // Get the coordinates for positioning
-      const coords = $editor.view.coordsAtPos(from);
-      const tempAnchor = document.createElement("div");
-      tempAnchor.style.position = "absolute";
-      tempAnchor.style.left = `${coords.left}px`;
-      tempAnchor.style.top = `${coords.top}px`;
-      document.body.appendChild(tempAnchor);
-      askTutorAnchor = tempAnchor;
-
-      askTutorOpen = true;
-    }
-  };
-
-  const handleAskTutorSubmit = (text: string, question: string) => {
-    onAskTutor?.(text, question);
-    askTutorOpen = false;
-    selectedText = "";
-
-    // Clean up anchor
-    if (askTutorAnchor) {
-      document.body.removeChild(askTutorAnchor);
-      askTutorAnchor = undefined;
-    }
+    const { from, to } = $editor.state.selection;
+    selectedText = $editor.state.doc.textBetween(from, to);
+    askTutorAnchor = askTutorButton;
+    askTutorOpen = true;
   };
 
   const handleAskTutorClose = () => {
     askTutorOpen = false;
-    selectedText = "";
 
-    // Clean up anchor
-    if (askTutorAnchor) {
-      document.body.removeChild(askTutorAnchor);
+    // Clean up at next tick
+    setTimeout(() => {
+      selectedText = "";
       askTutorAnchor = undefined;
-    }
+    }, 200);
+  };
+
+  const handleAskTutorSubmit = (text: string, question: string) => {
+    onAskTutor?.(text, question);
+    handleAskTutorClose();
   };
 </script>
 
-<Tooltip.Provider>
-  <Tooltip.Root bind:open={getCommentOpen, () => {}}>
-    <Tooltip.Content
-      class="shadow-sm"
-      customAnchor={commentState.dom ?? lazyAnchor}
-      sideOffset={-1}
-      onmouseenter={() => (lazyAnchor = commentState.dom)}
-      onmouseleave={() => setTimeout(() => (lazyAnchor = undefined), 100)}
-    >
-      <Markdown value={commentState.comment} />
-    </Tooltip.Content>
-  </Tooltip.Root>
-</Tooltip.Provider>
-
-<Popover.Root bind:open={getLatexOpen, setLatexOpen}>
-  <Popover.Content
-    class="w-[400px] p-2 shadow-sm"
-    customAnchor={latexState.dom}
-    sideOffset={8}
-    align="start"
-    alignOffset={-16}
-  >
-    <form class="flex gap-2" onsubmit={() => setLatexOpen(false)}>
-      <Input bind:value={latexState.latex} placeholder="LaTeX" />
-      <Button type="submit"><Check /></Button>
-    </form>
-  </Popover.Content>
-</Popover.Root>
+<CommentPopup />
+<LatexPopup />
 
 <AskTutorPopup
   bind:open={askTutorOpen}
@@ -282,6 +222,7 @@
         <span class="mx-1 text-gray-300">|</span>
 
         <button
+          bind:this={askTutorButton}
           class="flex items-center gap-1 px-2 hover:bg-accent"
           onclick={handleAskTutorClick}
         >
