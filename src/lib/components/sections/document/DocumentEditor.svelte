@@ -3,6 +3,7 @@
   import { StarterKit } from "@tiptap/starter-kit";
   import CommentNode from "./Comment";
   import LatexNode from "./Latex";
+  import CardNode from "./CardNode";
   import AskTutorPopup from "./AskTutorPopup.svelte";
   import { commentState, latexState } from "./document.svelte";
   import * as Tooltip from "$lib/components/ui/tooltip";
@@ -41,7 +42,7 @@
   // Initialize the editor on component mount
   onMount(() => {
     editor = createEditor({
-      extensions: [StarterKit, CommentNode, LatexNode],
+      extensions: [StarterKit, CommentNode, LatexNode, CardNode],
       editorProps: {
         attributes: {
           class: "prose focus:outline-none max-w-full h-full",
@@ -245,12 +246,12 @@
   <!-- Bubble menu -->
   {#if $editor}
     <BubbleMenu
-      class="transition-visibility invisible absolute z-20 flex border bg-white p-1 text-sm shadow-sm transition-opacity"
+      class="invisible absolute z-20 border bg-white p-1 shadow-sm"
       editor={$editor}
       shouldShow={({ editor, state }) =>
         !state.selection.empty && !editor.isActive("latex")}
     >
-      <div>
+      <div class="flex text-sm">
         {#snippet markButton(
           title: HTMLElement | string,
           classNames: string,
