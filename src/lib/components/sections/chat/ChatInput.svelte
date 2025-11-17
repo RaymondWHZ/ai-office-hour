@@ -31,7 +31,7 @@
 
 <div class="flex gap-3 border-t px-12 pt-6 pb-12">
   <Textarea bind:value onkeydown={handleKeyDown} {placeholder} {disabled} />
-  <Button onclick={handleSubmit} disabled={disabled || !value.trim()}
-    >Ask</Button
-  >
+  <Button onclick={handleSubmit} disabled={disabled || !value.trim()}>
+    Ask
+  </Button>
 </div>

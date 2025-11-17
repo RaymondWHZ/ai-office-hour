@@ -243,7 +243,7 @@
   {/each}
 
   <!-- Global loading indicator -->
-  {#if isGenerating && !lastPartIsLoading && lastPart?.type !== "tool-generate_options"}
+  {#if isGenerating && !lastPart}
     <div class="px-2 py-3">
       <Loader />
     </div>
