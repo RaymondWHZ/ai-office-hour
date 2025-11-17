@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Markdown from "$lib/components/renderers/Markdown.svelte";
-  import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
   import { Card } from "$lib/components/ui/card";
   import { Loader } from "$lib/components/ui/loader";
@@ -15,15 +14,13 @@
   interface Props {
     documentContent?: string;
     messages?: TutorMessage[];
-    inputValue?: string;
     isGenerating?: boolean;
   }
 
   let {
     documentContent = $bindable(""),
     messages = $bindable([]),
-    inputValue = "",
-    isGenerating = false,
+    isGenerating = $bindable(false),
   }: Props = $props();
 
   // eslint-disable-next-line no-unassigned-vars -- This will be binded to the messages container div
@@ -104,8 +101,8 @@
   });
 
   // Export function for parent component to trigger message submission
-  export const submitMessage = (message?: string) => {
-    const textToSend = message ?? inputValue.trim();
+  export const submitMessage = (message: string) => {
+    const textToSend = message.trim();
     if (textToSend && !isGenerating) {
       chat.sendMessage(
         { text: textToSend },
@@ -115,13 +112,6 @@
           },
         },
       );
-    }
-  };
-
-  // Handle clicking on an option
-  const handleClickOption = (value: string) => {
-    if (!isGenerating) {
-      submitMessage(value);
     }
   };
 
@@ -159,7 +149,7 @@
         {#each START_OPTIONS as option}
           <Card
             class="cursor-pointer select-none"
-            onclick={() => handleClickOption(option.prompt)}
+            onclick={() => submitMessage(option.prompt)}
           >
             <span class="text-lg font-semibold">{option.title}</span>
             <span class="text-sm">{option.description}</span>
@@ -238,7 +228,7 @@
             <div class="flex flex-wrap gap-2">
               {#each options as option}
                 <Button
-                  onclick={() => handleClickOption(option.value)}
+                  onclick={() => submitMessage(option.value)}
                   disabled={isGenerating || !isLastMessage}
                   variant="outline"
                 >

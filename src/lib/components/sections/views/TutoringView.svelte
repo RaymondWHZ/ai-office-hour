@@ -20,16 +20,7 @@
   }: Props = $props();
 
   // Reference to ChatPanel component
-  let chatPanel: ChatPanel;
-
-  // Handle sending messages
-  const handleSend = () => {
-    const trimmed = inputValue.trim();
-    if (trimmed && !isGenerating) {
-      chatPanel?.submitMessage(trimmed);
-      inputValue = "";
-    }
-  };
+  let chatPanel = $state() as ChatPanel;
 
   // Handle "Ask Tutor" from DocumentEditor
   const handleAskTutor = (selectedText: string, question: string) => {
@@ -56,14 +47,12 @@
         bind:this={chatPanel}
         bind:documentContent
         bind:messages
-        {inputValue}
-        {isGenerating}
+        bind:isGenerating
       />
-
       <ChatInput
         bind:value={inputValue}
         disabled={isGenerating}
-        onSubmit={handleSend}
+        onSubmit={chatPanel.submitMessage}
       />
     </div>
   </div>
