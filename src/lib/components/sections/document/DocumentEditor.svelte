@@ -25,6 +25,23 @@
     LatexNode,
     LatexPopup,
   } from "./extensions";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+
+  // Font options for the document
+  const fontOptions = [
+    { label: "Space Grotesk", value: "" },
+    { label: "Times New Roman", value: "'Times New Roman', Times, serif" },
+    { label: "Inter", value: "'Inter', sans-serif" },
+  ];
+
+  const getFontStyle = (value: string) =>
+    value ? `font-family: ${value}` : "";
+
+  let selectedFont = $state("");
+
+  const currentFontOption = $derived(
+    fontOptions.find((f) => f.value === selectedFont) ?? fontOptions[0],
+  );
 
   interface Props {
     value?: string;
@@ -75,6 +92,19 @@
     askTutorPopup.open(askTutorButton, selectedText);
   };
 </script>
+
+<svelte:head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin="anonymous"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
+    rel="stylesheet"
+  />
+</svelte:head>
 
 <CommentPopup />
 <LatexPopup />
@@ -156,6 +186,33 @@
       {@render toolbarButton(SeparatorHorizontal, false, () =>
         $editor?.chain().focus().setHorizontalRule().run(),
       )}
+
+      <span class="mx-1 text-gray-300">|</span>
+
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger>
+          {#snippet child({ props })}
+            <button
+              class="px-1.5 hover:bg-accent"
+              style={getFontStyle(currentFontOption.value)}
+              {...props}
+            >
+              {currentFontOption.label}
+            </button>
+          {/snippet}
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.RadioGroup bind:value={selectedFont}>
+            {#each fontOptions as font}
+              <DropdownMenu.RadioItem
+                value={font.value}
+                style={getFontStyle(font.value)}
+                >{font.label}</DropdownMenu.RadioItem
+              >
+            {/each}
+          </DropdownMenu.RadioGroup>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
     </div>
   {/if}
 
@@ -209,5 +266,10 @@
   {/if}
 
   <!-- Actual document -->
-  <EditorContent class="flex-1 px-32 pb-6" editor={$editor} />
+  <div
+    class="flex-1 px-32 pb-6"
+    style={selectedFont ? `font-family: ${selectedFont}` : ""}
+  >
+    <EditorContent editor={$editor} />
+  </div>
 </div>
