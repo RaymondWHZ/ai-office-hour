@@ -33,11 +33,10 @@
   $effect(() => {
     const submission = responseState.pendingSubmission;
     if (submission) {
-      let formattedMessage = "[Student Response]\n\n";
+      let formattedMessage = "[Student Responsed]\n\n";
       if (submission.question) {
-        formattedMessage += `Question: ${submission.question}\n\n`;
+        formattedMessage += `To Question: ${submission.question}\n\n`;
       }
-      formattedMessage += `My Answer: ${submission.answer}`;
 
       chatPanel?.submitMessage(formattedMessage);
       responseState.pendingSubmission = undefined;

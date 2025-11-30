@@ -10,6 +10,6 @@ export const SAMPLE_CONTENT = `
 
 <card>Tests your understanding of derivatives.</card>
 
-<response question="What is the derivative of x^2?"><p>Write your answer here...</p></response>
+<response question="What is the derivative of x^2?"><p></p></response>
 
 `;

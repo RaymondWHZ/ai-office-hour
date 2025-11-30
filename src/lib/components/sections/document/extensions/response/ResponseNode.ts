@@ -13,9 +13,13 @@ const ResponseNode = Node.create({
         default: "",
         parseHTML: (element) => element.getAttribute("question") || "",
       },
-      submitted: {
-        default: "false",
-        parseHTML: (element) => element.getAttribute("submitted") || "false",
+      hint: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("hint") || "",
+      },
+      status: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("status") || "",
       },
     };
   },
@@ -33,7 +37,8 @@ const ResponseNode = Node.create({
       "response",
       mergeAttributes(HTMLAttributes, {
         question: node.attrs.question,
-        submitted: node.attrs.submitted,
+        hint: node.attrs.hint,
+        status: node.attrs.status,
       }),
       0,
     ];

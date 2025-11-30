@@ -69,6 +69,35 @@ export const tools = {
       };
     },
   }),
+  update_response: tool({
+    description:
+      "Update the status of a student's response block after reviewing their answer. Call this when you receive a '[Student Response]' message to mark their answer as correct or incorrect.",
+    inputSchema: z.object({
+      question: z
+        .string()
+        .describe(
+          "The exact question text from the response block to identify which block to update.",
+        ),
+      status: z
+        .enum(["success", "error"])
+        .describe(
+          "Set to 'success' if the student's answer is correct, 'error' if incorrect.",
+        ),
+      hint: z
+        .string()
+        .optional()
+        .describe(
+          "Optional hint to help the student if status is 'error'. Will be displayed above the answer area.",
+        ),
+    }),
+    outputSchema: z.union([
+      z.object({ success: z.literal(true) }),
+      z.object({
+        success: z.literal(false),
+        error: z.string().describe("Error message if the update failed."),
+      }),
+    ]),
+  }),
 };
 
 export type TutorMessage = UIMessage<never, never, InferUITools<typeof tools>>;
