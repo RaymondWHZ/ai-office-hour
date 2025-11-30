@@ -4,6 +4,7 @@
   import type { TutorMessage } from "$lib/tools";
   import ChatPanel from "../chat/ChatPanel.svelte";
   import ChatInput from "../chat/ChatInput.svelte";
+  import { responseState } from "$lib/components/sections/document/extensions";
 
   interface Props {
     documentContent: string;
@@ -20,22 +21,28 @@
   }: Props = $props();
 
   // Reference to ChatPanel component
-  let chatPanel: ChatPanel;
-
-  // Handle sending messages
-  const handleSend = () => {
-    const trimmed = inputValue.trim();
-    if (trimmed && !isGenerating) {
-      chatPanel?.submitMessage(trimmed);
-      inputValue = "";
-    }
-  };
+  let chatPanel = $state() as ChatPanel;
 
   // Handle "Ask Tutor" from DocumentEditor
   const handleAskTutor = (selectedText: string, question: string) => {
     const formattedMessage = `Regarding: "${selectedText}"\n\nQuestion: ${question}`;
     chatPanel?.submitMessage(formattedMessage);
   };
+
+  // Handle response block submissions
+  $effect(() => {
+    const submission = responseState.pendingSubmission;
+    if (submission) {
+      let formattedMessage = "[Student Responsed]\n\n";
+      if (submission.question) {
+        formattedMessage += `Question: ${submission.question}\n\n`;
+      }
+      formattedMessage += `Answer: ${submission.answer}`;
+
+      chatPanel?.submitMessage(formattedMessage);
+      responseState.pendingSubmission = undefined;
+    }
+  });
 </script>
 
 <div class="mx-auto w-full flex-1 overflow-hidden">
@@ -56,14 +63,12 @@
         bind:this={chatPanel}
         bind:documentContent
         bind:messages
-        {inputValue}
-        {isGenerating}
+        bind:isGenerating
       />
-
       <ChatInput
         bind:value={inputValue}
         disabled={isGenerating}
-        onSubmit={handleSend}
+        onSubmit={chatPanel.submitMessage}
       />
     </div>
   </div>

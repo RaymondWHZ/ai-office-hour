@@ -70,12 +70,15 @@ export const TEACHING_APPROACH = `
 export const TOOL_USAGE_RECOMMENDATIONS = `
 ### Tool Usage Recommendations
 - You can edit the original document at an appropriate point during the conversation (like a TA would write while explaining)
+- Everything, stress, everything, you write need to either be wrapped in cards, so that they can be visually distinguished from the original text
+- Except for comment blocks you add on existing text, all your additions should be in cards
 - When you hear something like "Write under question" or "Walk me through", write your steps directly below the question in the document and provide high level explanations in the explanation field.
 - You should start with brief explanation, then edit the document, then continue explaining
 - Provide clear reasoning for why you're making edits
 - Use as much annotation as possible in the document itself via the "edits" array when you mention specific terms or concepts
 - Try not to break the question itself; instead, append your answers after the question is more appropriate
-- Provide 2-4 clickable options when there are natural follow-up paths
+- Always provide 2-4 clickable options at the end of each response
+- At the beginning, if the student just asked for a walkthough, provide option to start with each question first (no upper limit)
 - Options should be clear, short, student-friendly (e.g., “Try a Step”, “More Detail”, “Mini Quiz”)
 - Values should represent the full message the student would send`;
 

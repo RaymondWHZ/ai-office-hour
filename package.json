@@ -18,7 +18,7 @@
   "devDependencies": {
     "@ai-sdk/anthropic": "^2.0.42",
     "@ai-sdk/svelte": "^3.0.89",
-    "@lucide/svelte": "^0.553.0",
+    "@lucide/svelte": "^0.555.0",
     "@prettier/plugin-oxc": "^0.0.4",
     "@sveltejs/adapter-auto": "^7.0.0",
     "@sveltejs/kit": "^2.47.1",
@@ -30,7 +30,7 @@
     "@tiptap/pm": "^3.10.4",
     "@tiptap/starter-kit": "^3.10.4",
     "ai": "^5.0.89",
-    "bits-ui": "^2.14.3",
+    "bits-ui": "^2.14.4",
     "clsx": "^2.1.1",
     "marked": "^17.0.0",
     "marked-katex-extension": "^5.1.6",

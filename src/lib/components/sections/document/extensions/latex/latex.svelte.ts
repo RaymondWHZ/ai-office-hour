@@ -1,10 +1,3 @@
-interface CommentState {
-  dom?: HTMLElement;
-  comment?: string;
-}
-
-export const commentState = $state<CommentState>({});
-
 interface LatexState {
   dom?: HTMLElement;
   latex: string;

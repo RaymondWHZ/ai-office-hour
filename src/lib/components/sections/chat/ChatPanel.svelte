@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Markdown from "$lib/components/renderers/Markdown.svelte";
-  import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
   import { Card } from "$lib/components/ui/card";
   import { Loader } from "$lib/components/ui/loader";
@@ -9,21 +8,19 @@
   import { Chat } from "@ai-sdk/svelte";
   import type { TutorMessage } from "$lib/tools";
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
-  import { applyEdits } from "$lib/documentEditor";
+  import { applyEdits, updateResponseBlock } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
 
   interface Props {
     documentContent?: string;
     messages?: TutorMessage[];
-    inputValue?: string;
     isGenerating?: boolean;
   }
 
   let {
     documentContent = $bindable(""),
     messages = $bindable([]),
-    inputValue = "",
-    isGenerating = false,
+    isGenerating = $bindable(false),
   }: Props = $props();
 
   // eslint-disable-next-line no-unassigned-vars -- This will be binded to the messages container div
@@ -76,6 +73,35 @@
           });
         }
       }
+
+      if (toolCall.toolName === "update_response") {
+        const { question, status, hint } = toolCall.input;
+        try {
+          documentContent = updateResponseBlock(
+            documentContent,
+            question,
+            status,
+            hint,
+          );
+          chat.addToolOutput({
+            tool: "update_response",
+            toolCallId: toolCall.toolCallId,
+            output: { success: true },
+          });
+        } catch (updateError) {
+          chat.addToolOutput({
+            tool: "update_response",
+            toolCallId: toolCall.toolCallId,
+            output: {
+              success: false,
+              error:
+                updateError instanceof Error
+                  ? updateError.message
+                  : "Failed to update response block.",
+            },
+          });
+        }
+      }
     },
   });
 
@@ -104,9 +130,10 @@
   });
 
   // Export function for parent component to trigger message submission
-  export const submitMessage = (message?: string) => {
-    const textToSend = message ?? inputValue.trim();
+  export const submitMessage = (message: string) => {
+    const textToSend = message.trim();
     if (textToSend && !isGenerating) {
+      console.log(documentContent);
       chat.sendMessage(
         { text: textToSend },
         {
@@ -115,13 +142,6 @@
           },
         },
       );
-    }
-  };
-
-  // Handle clicking on an option
-  const handleClickOption = (value: string) => {
-    if (!isGenerating) {
-      submitMessage(value);
     }
   };
 
@@ -159,7 +179,7 @@
         {#each START_OPTIONS as option}
           <Card
             class="cursor-pointer select-none"
-            onclick={() => handleClickOption(option.prompt)}
+            onclick={() => submitMessage(option.prompt)}
           >
             <span class="text-lg font-semibold">{option.title}</span>
             <span class="text-sm">{option.description}</span>
@@ -183,13 +203,13 @@
       <!-- Render each part in order -->
       {#each message.parts as part}
         {#if part.type === "text" && "text" in part && part.text.trim()}
-          <Card>
+          <div class="py-4">
             {#if message.role === "assistant"}
               <Markdown class="prose max-w-none" value={part.text} />
             {:else}
               {part.text}
             {/if}
-          </Card>
+          </div>
         {:else if part.type === "tool-edit_document"}
           {#if part.state === "input-streaming"}
             <!-- Loading: Generating edits -->
@@ -223,22 +243,47 @@
               {/if}
             </Card>
           {/if}
+        {:else if part.type === "tool-update_response"}
+          {#if part.state === "input-streaming"}
+            <!-- Loading: Updating response -->
+            <Card class="flex flex-row items-center gap-3">
+              <Loader />
+              <span class="font-medium">Updating response...</span>
+            </Card>
+          {:else}
+            {@const result = part.output}
+            <!-- Update result indicator -->
+            <Card class="flex flex-col gap-2">
+              {#if result?.success}
+                <div class="flex flex-row items-center gap-3">
+                  <SquareCheck />
+                  <span class="font-medium">Response reviewed</span>
+                </div>
+              {:else}
+                <div class="flex flex-row items-center gap-3">
+                  <span class="font-medium text-red-600">
+                    Failed to update response
+                  </span>
+                </div>
+                <p class="m-0 text-sm text-gray-600">
+                  {result?.error ?? "No response from update tool."}
+                </p>
+              {/if}
+            </Card>
+          {/if}
         {:else if part.type === "tool-generate_options"}
           {@const options = part.output?.options}
           {@const isLastMessage = messageIndex === chat.messages.length - 1}
 
           {#if part.state === "input-streaming"}
             <!-- Loading: Generating options -->
-            <Card class="flex flex-row items-center gap-3">
-              <Loader />
-              <span class="font-medium">Generating options...</span>
-            </Card>
+            <Loader />
           {:else if options && options.length > 0}
             <!-- Options -->
             <div class="flex flex-wrap gap-2">
               {#each options as option}
                 <Button
-                  onclick={() => handleClickOption(option.value)}
+                  onclick={() => submitMessage(option.value)}
                   disabled={isGenerating || !isLastMessage}
                   variant="outline"
                 >
@@ -253,9 +298,7 @@
   {/each}
 
   <!-- Global loading indicator -->
-  {#if isGenerating && !lastPartIsLoading && lastPart?.type !== "tool-generate_options"}
-    <div class="px-2 py-3">
-      <Loader />
-    </div>
+  {#if isGenerating && !lastPart}
+    <Loader />
   {/if}
 </div>

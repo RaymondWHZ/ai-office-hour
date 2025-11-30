@@ -17,7 +17,7 @@ ${DOCUMENT_FORMAT}
 
 Additional instruction:
 
-- Do not use comment in your output
+- Do not use comments or cards in any case in your output
 
 Format the following pdf extracted text into a well-structured document:
 

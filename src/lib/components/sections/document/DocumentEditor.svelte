@@ -1,16 +1,8 @@
 <script lang="ts">
   import { onDestroy, onMount, type Component } from "svelte";
   import { StarterKit } from "@tiptap/starter-kit";
-  import CommentNode from "./Comment";
-  import LatexNode from "./Latex";
   import AskTutorPopup from "./AskTutorPopup.svelte";
-  import { commentState, latexState } from "./document.svelte";
-  import * as Tooltip from "$lib/components/ui/tooltip";
-  import * as Popover from "$lib/components/ui/popover";
-  import { Input } from "$lib/components/ui/input";
-  import { Button } from "$lib/components/ui/button";
   import {
-    Check,
     Code,
     List,
     ListOrdered,
@@ -19,7 +11,6 @@
     TextQuote,
   } from "@lucide/svelte";
   import { cn } from "$lib/utils";
-  import Markdown from "$lib/components/renderers/Markdown.svelte";
   import type { Readable } from "svelte/store";
   import {
     createEditor,
@@ -27,6 +18,22 @@
     EditorContent,
     BubbleMenu,
   } from "svelte-tiptap";
+  import {
+    CardNode,
+    CommentNode,
+    CommentPopup,
+    LatexNode,
+    LatexPopup,
+    ResponseNode,
+  } from "./extensions";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+  import { FONT_OPTIONS, getFontStyle } from "$lib/constants/fonts";
+
+  let selectedFont = $state("");
+
+  const currentFontOption = $derived(
+    FONT_OPTIONS.find((f) => f.value === selectedFont) ?? FONT_OPTIONS[0],
+  );
 
   interface Props {
     value?: string;
@@ -41,7 +48,7 @@
   // Initialize the editor on component mount
   onMount(() => {
     editor = createEditor({
-      extensions: [StarterKit, CommentNode, LatexNode],
+      extensions: [StarterKit, CommentNode, LatexNode, CardNode, ResponseNode],
       editorProps: {
         attributes: {
           class: "prose focus:outline-none max-w-full h-full",
@@ -67,102 +74,33 @@
     $editor?.destroy();
   });
 
-  // Comment tooltip state
-  let lazyAnchor = $state<HTMLElement | undefined>(undefined);
-  const getCommentOpen = () => !!commentState.dom || !!lazyAnchor;
-
-  // Latex tooltip state
-  const getLatexOpen = () => !!latexState.dom;
-  const setLatexOpen = (open: boolean) => {
-    if (!open) {
-      latexState.dom = undefined;
-      setTimeout(() => latexState.update(latexState.latex), 10);
-    }
-  };
-
   // Ask Tutor popup state
-  let askTutorOpen = $state(false);
-  let askTutorAnchor = $state<HTMLElement | undefined>(undefined);
-  let selectedText = $state("");
+  let askTutorPopup = $state() as AskTutorPopup;
+  let askTutorButton = $state() as HTMLButtonElement;
 
   const handleAskTutorClick = () => {
-    if ($editor) {
-      const { from, to } = $editor.state.selection;
-      selectedText = $editor.state.doc.textBetween(from, to);
-
-      // Get the coordinates for positioning
-      const coords = $editor.view.coordsAtPos(from);
-      const tempAnchor = document.createElement("div");
-      tempAnchor.style.position = "absolute";
-      tempAnchor.style.left = `${coords.left}px`;
-      tempAnchor.style.top = `${coords.top}px`;
-      document.body.appendChild(tempAnchor);
-      askTutorAnchor = tempAnchor;
-
-      askTutorOpen = true;
-    }
-  };
-
-  const handleAskTutorSubmit = (text: string, question: string) => {
-    onAskTutor?.(text, question);
-    askTutorOpen = false;
-    selectedText = "";
-
-    // Clean up anchor
-    if (askTutorAnchor) {
-      document.body.removeChild(askTutorAnchor);
-      askTutorAnchor = undefined;
-    }
-  };
-
-  const handleAskTutorClose = () => {
-    askTutorOpen = false;
-    selectedText = "";
-
-    // Clean up anchor
-    if (askTutorAnchor) {
-      document.body.removeChild(askTutorAnchor);
-      askTutorAnchor = undefined;
-    }
+    const { from, to } = $editor.state.selection;
+    const selectedText = $editor.state.doc.textBetween(from, to);
+    askTutorPopup.open(askTutorButton, selectedText);
   };
 </script>
 
-<Tooltip.Provider>
-  <Tooltip.Root bind:open={getCommentOpen, () => {}}>
-    <Tooltip.Content
-      class="shadow-sm"
-      customAnchor={commentState.dom ?? lazyAnchor}
-      sideOffset={-1}
-      onmouseenter={() => (lazyAnchor = commentState.dom)}
-      onmouseleave={() => setTimeout(() => (lazyAnchor = undefined), 100)}
-    >
-      <Markdown value={commentState.comment} />
-    </Tooltip.Content>
-  </Tooltip.Root>
-</Tooltip.Provider>
+<svelte:head>
+  {#if currentFontOption.stylesheet}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin="anonymous"
+    />
+    <link href={currentFontOption.stylesheet} rel="stylesheet" />
+  {/if}
+</svelte:head>
 
-<Popover.Root bind:open={getLatexOpen, setLatexOpen}>
-  <Popover.Content
-    class="w-[400px] p-2 shadow-sm"
-    customAnchor={latexState.dom}
-    sideOffset={8}
-    align="start"
-    alignOffset={-16}
-  >
-    <form class="flex gap-2" onsubmit={() => setLatexOpen(false)}>
-      <Input bind:value={latexState.latex} placeholder="LaTeX" />
-      <Button type="submit"><Check /></Button>
-    </form>
-  </Popover.Content>
-</Popover.Root>
+<CommentPopup />
+<LatexPopup />
 
-<AskTutorPopup
-  bind:open={askTutorOpen}
-  {selectedText}
-  anchor={askTutorAnchor}
-  onSubmit={handleAskTutorSubmit}
-  onClose={handleAskTutorClose}
-/>
+<AskTutorPopup bind:this={askTutorPopup} onSubmit={onAskTutor} />
 
 <div class="relative flex h-full flex-col overflow-auto">
   <!-- Block menu -->
@@ -239,18 +177,45 @@
       {@render toolbarButton(SeparatorHorizontal, false, () =>
         $editor?.chain().focus().setHorizontalRule().run(),
       )}
+
+      <span class="mx-1 text-gray-300">|</span>
+
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger>
+          {#snippet child({ props })}
+            <button
+              class="px-1.5 hover:bg-accent"
+              style={getFontStyle(currentFontOption.value)}
+              {...props}
+            >
+              {currentFontOption.label}
+            </button>
+          {/snippet}
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.RadioGroup bind:value={selectedFont}>
+            {#each FONT_OPTIONS as font}
+              <DropdownMenu.RadioItem
+                value={font.value}
+                style={getFontStyle(font.value)}
+                >{font.label}</DropdownMenu.RadioItem
+              >
+            {/each}
+          </DropdownMenu.RadioGroup>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
     </div>
   {/if}
 
   <!-- Bubble menu -->
   {#if $editor}
     <BubbleMenu
-      class="transition-visibility invisible absolute z-20 flex border bg-white p-1 text-sm shadow-sm transition-opacity"
+      class="invisible absolute z-20 border bg-white p-1 shadow-sm"
       editor={$editor}
       shouldShow={({ editor, state }) =>
         !state.selection.empty && !editor.isActive("latex")}
     >
-      <div>
+      <div class="flex text-sm">
         {#snippet markButton(
           title: HTMLElement | string,
           classNames: string,
@@ -281,7 +246,8 @@
         <span class="mx-1 text-gray-300">|</span>
 
         <button
-          class="flex items-center gap-1 px-2 hover:bg-accent"
+          bind:this={askTutorButton}
+          class="flex items-center gap-1 px-2 outline-none hover:bg-accent"
           onclick={handleAskTutorClick}
         >
           <MessageSquareHeart class="size-4" /> Ask Tutor
@@ -291,5 +257,10 @@
   {/if}
 
   <!-- Actual document -->
-  <EditorContent class="flex-1 px-32 pb-6" editor={$editor} />
+  <div
+    class="flex-1 px-32 pb-6"
+    style={selectedFont ? `font-family: ${selectedFont}` : ""}
+  >
+    <EditorContent editor={$editor} />
+  </div>
 </div>

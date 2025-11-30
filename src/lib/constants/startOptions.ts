@@ -12,9 +12,9 @@ export const START_OPTIONS: StartOption[] = [
       "I'd like a walkthrough of the document. Please guide me through the key concepts and help me understand what I need to learn step by step.",
   },
   {
-    title: "✍ Quiz Style",
-    description: "Test knowledge with questions",
+    title: "✍ Dive In and Solve",
+    description: "Start answering questions directly",
     prompt:
-      "I'd like to test my understanding with quiz-style questions. Please assess what I know and help me practice the concepts in this document.",
+      "I'd like to start by trying questions out directly. Please provide a response block after each question with some hint for me to conveniently input my answers.",
   },
 ];

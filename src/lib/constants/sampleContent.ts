@@ -7,4 +7,9 @@ export const SAMPLE_CONTENT = `
 <p>Calculate the derivative of the following function: </p>
 
 <p><latex data="f(x) = 3x^2 + 2x - 5"/></p>
+
+<card>Tests your understanding of derivatives.</card>
+
+<response question="What is the derivative of x^2?"><p></p></response>
+
 `;
