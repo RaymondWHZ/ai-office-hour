@@ -26,21 +26,12 @@
     LatexPopup,
   } from "./extensions";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-
-  // Font options for the document
-  const fontOptions = [
-    { label: "Space Grotesk", value: "" },
-    { label: "Times New Roman", value: "'Times New Roman', Times, serif" },
-    { label: "Inter", value: "'Inter', sans-serif" },
-  ];
-
-  const getFontStyle = (value: string) =>
-    value ? `font-family: ${value}` : "";
+  import { FONT_OPTIONS, getFontStyle } from "$lib/constants/fonts";
 
   let selectedFont = $state("");
 
   const currentFontOption = $derived(
-    fontOptions.find((f) => f.value === selectedFont) ?? fontOptions[0],
+    FONT_OPTIONS.find((f) => f.value === selectedFont) ?? FONT_OPTIONS[0],
   );
 
   interface Props {
@@ -94,16 +85,15 @@
 </script>
 
 <svelte:head>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin="anonymous"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
-    rel="stylesheet"
-  />
+  {#if currentFontOption.stylesheet}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin="anonymous"
+    />
+    <link href={currentFontOption.stylesheet} rel="stylesheet" />
+  {/if}
 </svelte:head>
 
 <CommentPopup />
@@ -203,7 +193,7 @@
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.RadioGroup bind:value={selectedFont}>
-            {#each fontOptions as font}
+            {#each FONT_OPTIONS as font}
               <DropdownMenu.RadioItem
                 value={font.value}
                 style={getFontStyle(font.value)}
