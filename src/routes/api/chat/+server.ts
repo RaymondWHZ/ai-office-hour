@@ -1,7 +1,7 @@
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { TUTOR_PROMPT } from "$lib/constants/prompts";
 import type { RequestHandler } from "./$types";
-import { anthropic } from "$lib/ai";
+import { getModel } from "$lib/ai";
 import { tools } from "$lib/tools";
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -27,7 +27,7 @@ ${documentContent || "No document provided"}
 
   // Call AI API using Vercel AI SDK with streaming
   const result = streamText({
-    model: anthropic("claude-haiku-4-5"),
+    model: getModel(),
     system: systemMessage,
     messages: modelMessages,
     temperature: 0.7,

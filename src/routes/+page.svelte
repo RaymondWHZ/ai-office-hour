@@ -5,6 +5,8 @@
   import WelcomeView from "$lib/components/sections/views/WelcomeView.svelte";
   import { extractText, getDocumentProxy } from "unpdf";
   import Loader from "$lib/components/ui/loader/loader.svelte";
+  import { ModelSelector } from "$lib/components/ui/model-selector";
+  import { loadModelFromStorage } from "$lib/stores/modelStore.svelte";
   import type { TutorMessage } from "$lib/tools";
   import {
     getActiveSession,
@@ -29,6 +31,11 @@
   let currentSession = $state<SessionData | undefined>();
   let uploading = $state(false);
   let isGenerating = $state(false);
+
+  // Load model selection from storage on mount
+  $effect.pre(() => {
+    loadModelFromStorage();
+  });
 
   const handleUploadFile = async (file: File) => {
     uploading = true;
@@ -92,10 +99,18 @@
           Upload your assignment and ask questions to understand it better
         </p>
       </div>
-      <SessionSwitcher
-        onClickNew={() => (currentSession = undefined)}
-        onDelete={() => (currentSession = undefined)}
-      />
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <div class="w-40">
+          <div class="mb-1 block text-xs font-semibold text-gray-700">
+            AI Model
+          </div>
+          <ModelSelector />
+        </div>
+        <SessionSwitcher
+          onClickNew={() => (currentSession = undefined)}
+          onDelete={() => (currentSession = undefined)}
+        />
+      </div>
     </div>
   </div>
 
