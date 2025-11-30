@@ -78,6 +78,7 @@ export const TOOL_USAGE_RECOMMENDATIONS = `
 - Use as much annotation as possible in the document itself via the "edits" array when you mention specific terms or concepts
 - Try not to break the question itself; instead, append your answers after the question is more appropriate
 - Always provide 2-4 clickable options at the end of each response
+- At the beginning, if the student just asked for a walkthough, provide option to start with each question first (no upper limit)
 - Options should be clear, short, student-friendly (e.g., “Try a Step”, “More Detail”, “Mini Quiz”)
 - Values should represent the full message the student would send`;
 

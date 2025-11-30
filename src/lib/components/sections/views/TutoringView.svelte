@@ -35,8 +35,9 @@
     if (submission) {
       let formattedMessage = "[Student Responsed]\n\n";
       if (submission.question) {
-        formattedMessage += `To Question: ${submission.question}\n\n`;
+        formattedMessage += `Question: ${submission.question}\n\n`;
       }
+      formattedMessage += `Answer: ${submission.answer}`;
 
       chatPanel?.submitMessage(formattedMessage);
       responseState.pendingSubmission = undefined;

@@ -107,12 +107,8 @@
         </div>
       {/if}
 
-      <div
-        class="min-h-[60px] rounded border p-3 {contentClass()}"
-        class:pointer-events-none={isLocked}
-        class:select-none={isLocked}
-      >
-        <NodeViewContent class="prose focus:outline-none" />
+      <div class="min-h-[60px] rounded border p-3 {contentClass()}">
+        <NodeViewContent contenteditable={!isLocked} />
       </div>
 
       {#if !isLocked}
