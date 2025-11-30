@@ -26,6 +26,7 @@ Document Format Specifications
 - Use <latex data="mathematical expression"/> to add equations
 - Use <comment data="comment">words</comment> to add inline comments to words; $$ inline latex math syntax is supported in data attribute
 - Use <card>...</card> to wrap blocks of content that should be visually distinguished (like explanations, hints, etc.)
+- Use <response question="optional question" submitted="false">...</response> to create interactive answer blocks for students
 - Remember this is a HTML format; no markdown syntax in the document (except in comment data attribute)`;
 
 export const TOOL_EDIT_DOCUMENT = `
@@ -44,3 +45,21 @@ TOOL USAGE - generate_options:
 - Call this tool to provide user with clickable follow-up options
 - Each option should have a clear "label" (button text, 2-5 words) and "value" (the full prompt that will be sent)
 - Whenever you call the tool, the conversation will end`;
+
+export const RESPONSE_BLOCK_USAGE = `
+More details on response block usage:
+- Use <response> tags to create interactive blocks where students can write their answers
+- Syntax: <response question="optional question text" submitted="false">placeholder or prompt text</response>
+- The "question" attribute is optional - use it to display what question the student should answer
+- The "submitted" attribute tracks submission state and starts as "false"
+- Students can edit the content inside the block and click "Submit for Review" to send their answer to you
+- Use response blocks when you want the student to:
+  - Practice solving a problem step-by-step
+  - Write their reasoning or explanation
+  - Answer a comprehension check question
+  - Complete a mini-exercise before continuing
+- Example usages:
+  <response question="What is the derivative of x^2?"><p></p></response>
+  <response><p></p></response>
+- When a student submits their response, you will receive it as a message with their question (if provided) and answer clearly labeled
+- After receiving their response, provide constructive feedback and guide them forward`;

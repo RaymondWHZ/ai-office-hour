@@ -9,4 +9,7 @@ export const SAMPLE_CONTENT = `
 <p><latex data="f(x) = 3x^2 + 2x - 5"/></p>
 
 <card>Tests your understanding of derivatives.</card>
+
+<response question="What is the derivative of x^2?"><p>Write your answer here...</p></response>
+
 `;

@@ -24,6 +24,7 @@
     CommentPopup,
     LatexNode,
     LatexPopup,
+    ResponseNode,
   } from "./extensions";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import { FONT_OPTIONS, getFontStyle } from "$lib/constants/fonts";
@@ -47,7 +48,7 @@
   // Initialize the editor on component mount
   onMount(() => {
     editor = createEditor({
-      extensions: [StarterKit, CommentNode, LatexNode, CardNode],
+      extensions: [StarterKit, CommentNode, LatexNode, CardNode, ResponseNode],
       editorProps: {
         attributes: {
           class: "prose focus:outline-none max-w-full h-full",

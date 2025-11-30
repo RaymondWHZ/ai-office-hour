@@ -4,6 +4,7 @@
   import type { TutorMessage } from "$lib/tools";
   import ChatPanel from "../chat/ChatPanel.svelte";
   import ChatInput from "../chat/ChatInput.svelte";
+  import { responseState } from "$lib/components/sections/document/extensions";
 
   interface Props {
     documentContent: string;
@@ -27,6 +28,21 @@
     const formattedMessage = `Regarding: "${selectedText}"\n\nQuestion: ${question}`;
     chatPanel?.submitMessage(formattedMessage);
   };
+
+  // Handle response block submissions
+  $effect(() => {
+    const submission = responseState.pendingSubmission;
+    if (submission) {
+      let formattedMessage = "[Student Response]\n\n";
+      if (submission.question) {
+        formattedMessage += `Question: ${submission.question}\n\n`;
+      }
+      formattedMessage += `My Answer: ${submission.answer}`;
+
+      chatPanel?.submitMessage(formattedMessage);
+      responseState.pendingSubmission = undefined;
+    }
+  });
 </script>
 
 <div class="mx-auto w-full flex-1 overflow-hidden">
