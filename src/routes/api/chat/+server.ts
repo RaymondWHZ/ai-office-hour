@@ -3,14 +3,17 @@ import { TUTOR_PROMPT } from "$lib/constants/prompts";
 import type { RequestHandler } from "./$types";
 import { getModel } from "$lib/ai";
 import { tools } from "$lib/tools";
+import type { ModelType } from "$lib/stores/modelStore.svelte";
 
 export const POST: RequestHandler = async ({ request }) => {
   const {
     messages,
     documentContent,
+    model,
   }: {
     messages: UIMessage[];
-    documentContent?: string;
+    documentContent: string;
+    model: ModelType;
   } = await request.json();
 
   // Convert UI messages to model messages
@@ -27,7 +30,7 @@ ${documentContent || "No document provided"}
 
   // Call AI API using Vercel AI SDK with streaming
   const result = streamText({
-    model: getModel(),
+    model: getModel(model),
     system: systemMessage,
     messages: modelMessages,
     temperature: 0.7,

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Markdown from "$lib/components/renderers/Markdown.svelte";
-  import { Textarea } from "$lib/components/ui/textarea";
   import { Button } from "$lib/components/ui/button";
   import { Card } from "$lib/components/ui/card";
   import { Loader } from "$lib/components/ui/loader";
@@ -11,6 +10,7 @@
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
   import { applyEdits } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
+  import { getSelectedModel } from "$lib/stores/modelStore.svelte";
 
   interface Props {
     documentContent?: string;
@@ -112,6 +112,7 @@
         {
           body: {
             documentContent,
+            model: getSelectedModel(),
           },
         },
       );
