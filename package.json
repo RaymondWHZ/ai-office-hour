@@ -51,5 +51,8 @@
     "unpdf": "^1.4.0",
     "vite": "^7.1.10",
     "zod": "^4.1.12"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^2.0.68"
   }
 }

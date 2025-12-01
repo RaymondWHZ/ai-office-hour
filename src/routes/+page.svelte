@@ -5,6 +5,7 @@
   import WelcomeView from "$lib/components/sections/views/WelcomeView.svelte";
   import { extractText, getDocumentProxy } from "unpdf";
   import Loader from "$lib/components/ui/loader/loader.svelte";
+  import { ModelSelector } from "$lib/components/ui/model-selector";
   import type { TutorMessage } from "$lib/tools";
   import {
     getActiveSession,
@@ -92,10 +93,13 @@
           Upload your assignment and ask questions to understand it better
         </p>
       </div>
-      <SessionSwitcher
-        onClickNew={() => (currentSession = undefined)}
-        onDelete={() => (currentSession = undefined)}
-      />
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <ModelSelector />
+        <SessionSwitcher
+          onClickNew={() => (currentSession = undefined)}
+          onDelete={() => (currentSession = undefined)}
+        />
+      </div>
     </div>
   </div>
 

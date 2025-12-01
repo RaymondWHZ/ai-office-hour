@@ -10,6 +10,7 @@
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
   import { applyEdits, updateResponseBlock } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
+  import { getSelectedModel } from "$lib/stores/modelStore.svelte";
 
   interface Props {
     documentContent?: string;
@@ -139,6 +140,7 @@
         {
           body: {
             documentContent,
+            model: getSelectedModel(),
           },
         },
       );

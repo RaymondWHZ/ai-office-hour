@@ -40,6 +40,7 @@ bun install
 Create a `.env` file in the root directory:
 
 ```bash
+OPENAI_API_KEY=your_api_key_here
 CLAUDE_API_KEY=your_api_key_here
 ```
 
