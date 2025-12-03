@@ -1,12 +1,11 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
+  import { Root, Content, Item, Trigger } from "$lib/components/ui/select";
   import {
-    Root,
-    Content,
-    Item,
-    Trigger,
-  } from "$lib/components/ui/select";
-  import { AVAILABLE_MODELS, setSelectedModel, getSelectedModel } from "$lib/stores/modelStore.svelte";
+    AVAILABLE_MODELS,
+    setSelectedModel,
+    getSelectedModel,
+  } from "$lib/stores/modelStore.svelte";
   import type { ModelType } from "$lib/stores/modelStore.svelte";
   import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
 
