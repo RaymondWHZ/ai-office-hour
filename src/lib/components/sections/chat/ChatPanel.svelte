@@ -223,13 +223,13 @@
           {#if part.state === "input-streaming"}
             <!-- Loading: Generating options -->
             <Loader />
-          {:else if options && options.length > 0}
-            <!-- Options -->
+          {:else if options && options.length > 0 && isLastMessage}
+            <!-- Options - only show for last message -->
             <div class="flex flex-wrap gap-2">
               {#each options as option}
                 <Button
                   onclick={() => submitMessage(option.value)}
-                  disabled={isGenerating || !isLastMessage}
+                  disabled={isGenerating}
                   variant="outline"
                 >
                   {option.label}
