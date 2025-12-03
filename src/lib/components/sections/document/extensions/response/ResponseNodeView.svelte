@@ -9,8 +9,10 @@
     CircleX,
     Lightbulb,
     LoaderCircle,
+    MessageCircleQuestion,
   } from "@lucide/svelte";
   import type { NodeViewProps } from "@tiptap/core";
+  import { askHelpState } from "./askHelp.svelte";
 
   let { node, editor, updateAttributes, deleteNode }: NodeViewProps = $props();
 
@@ -76,6 +78,13 @@
   const handleDelete = () => {
     deleteNode();
   };
+
+  const handleAskHelp = () => {
+    askHelpState.pending = {
+      question,
+      currentAnswer: node.textContent || "",
+    };
+  };
 </script>
 
 <NodeViewWrapper class="my-4">
@@ -130,7 +139,11 @@
       </div>
 
       {#if !isLocked}
-        <div class="mt-3 flex justify-end">
+        <div class="mt-3 flex justify-end gap-2">
+          <Button variant="outline" size="sm" onclick={handleAskHelp}>
+            <MessageCircleQuestion class="mr-1 size-4" />
+            Ask for Help
+          </Button>
           <Button
             variant={isError ? "secondary" : "default"}
             size="sm"

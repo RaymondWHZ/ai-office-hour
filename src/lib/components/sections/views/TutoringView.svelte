@@ -5,6 +5,7 @@
   import ChatPanel from "../chat/ChatPanel.svelte";
   import ChatInput from "../chat/ChatInput.svelte";
   import * as Resizable from "$lib/components/ui/resizable/index.js";
+  import { askHelpState } from "$lib/components/sections/document/extensions";
 
   interface Props {
     documentContent: string;
@@ -28,6 +29,20 @@
     const formattedMessage = `Regarding: "${selectedText}"\n\nQuestion: ${question}`;
     chatPanel?.submitMessage(formattedMessage);
   };
+
+  // Handle "Ask for Help" from response blocks
+  $effect(() => {
+    const pending = askHelpState.pending;
+    if (pending) {
+      let message = `[Help Request]\n\nQuestion: ${pending.question}`;
+      if (pending.currentAnswer.trim()) {
+        message += `\n\nMy current answer: ${pending.currentAnswer}`;
+      }
+      message += `\n\nCan you give me a hint?`;
+      chatPanel?.submitMessage(message);
+      askHelpState.pending = undefined;
+    }
+  });
 </script>
 
 <div class="h-full w-full overflow-hidden">

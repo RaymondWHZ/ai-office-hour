@@ -3,5 +3,13 @@ import CommentNode from "./comment/CommentNode";
 import LatexNode from "./latex/LatexNode";
 import LatexPopup from "./latex/LatexPopup.svelte";
 import ResponseNode from "./response/ResponseNode";
+import { askHelpState } from "./response/askHelp.svelte";
 
-export { CardNode, CommentNode, LatexNode, LatexPopup, ResponseNode };
+export {
+  CardNode,
+  CommentNode,
+  LatexNode,
+  LatexPopup,
+  ResponseNode,
+  askHelpState,
+};
