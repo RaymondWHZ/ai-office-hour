@@ -24,7 +24,7 @@ Document Format Specifications
 - Output nothing else but the html string; no code block surrounding it
 - Only h1, h2, h3, p, ul, ol, li, code blocks are used; don't use other HTML tags
 - Use <latex data="mathematical expression"/> to add equations
-- Use <comment data="comment">words</comment> to add inline comments to words; $$ inline latex math syntax is supported in data attribute
+- Use <comment data="comment" data-title="optional title">words</comment> to add inline comments to words; data-title shows as a header in the popup; $$ inline latex math syntax is supported in data attribute
 - Use <card>...</card> to wrap blocks of content that should be visually distinguished (like explanations, hints, etc.)
 - Use <response question="...">...</response> to create interactive answer blocks for students (hint attribute optional)
 - Remember this is a HTML format; no markdown syntax in the document (except in comment data attribute)`;

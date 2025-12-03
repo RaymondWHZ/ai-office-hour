@@ -21,7 +21,6 @@
   import {
     CardNode,
     CommentNode,
-    CommentPopup,
     LatexNode,
     LatexPopup,
     ResponseNode,
@@ -97,7 +96,6 @@
   {/if}
 </svelte:head>
 
-<CommentPopup />
 <LatexPopup />
 
 <AskTutorPopup bind:this={askTutorPopup} onSubmit={onAskTutor} />
