@@ -4,6 +4,7 @@
   import type { TutorMessage } from "$lib/tools";
   import ChatPanel from "../chat/ChatPanel.svelte";
   import ChatInput from "../chat/ChatInput.svelte";
+  import * as Resizable from "$lib/components/ui/resizable/index.js";
 
   interface Props {
     documentContent: string;
@@ -29,31 +30,35 @@
   };
 </script>
 
-<div class="mx-auto w-full flex-1 overflow-hidden">
-  <div class="flex h-full overflow-hidden">
-    <div
-      class="flex flex-1 flex-col items-center overflow-hidden p-6 md:col-span-3"
-    >
-      <Card class="h-full w-full max-w-7xl overflow-hidden p-0">
-        <DocumentEditor
-          bind:value={documentContent}
-          onAskTutor={handleAskTutor}
-        />
-      </Card>
-    </div>
+<div class="h-full w-full overflow-hidden">
+  <Resizable.PaneGroup direction="horizontal">
+    <Resizable.Pane defaultSize={65} minSize={30}>
+      <div class="flex h-full flex-col items-center overflow-hidden p-6">
+        <Card class="h-full w-full max-w-7xl overflow-hidden p-0">
+          <DocumentEditor
+            bind:value={documentContent}
+            onAskTutor={handleAskTutor}
+          />
+        </Card>
+      </div>
+    </Resizable.Pane>
 
-    <div class="flex w-lg flex-col overflow-hidden border-l xl:w-xl 2xl:w-3xl">
-      <ChatPanel
-        bind:this={chatPanel}
-        bind:documentContent
-        bind:messages
-        bind:isGenerating
-      />
-      <ChatInput
-        bind:value={inputValue}
-        disabled={isGenerating}
-        onSubmit={chatPanel.submitMessage}
-      />
-    </div>
-  </div>
+    <Resizable.Handle />
+
+    <Resizable.Pane defaultSize={35} minSize={20}>
+      <div class="flex h-full flex-col overflow-hidden">
+        <ChatPanel
+          bind:this={chatPanel}
+          bind:documentContent
+          bind:messages
+          bind:isGenerating
+        />
+        <ChatInput
+          bind:value={inputValue}
+          disabled={isGenerating}
+          onSubmit={chatPanel.submitMessage}
+        />
+      </div>
+    </Resizable.Pane>
+  </Resizable.PaneGroup>
 </div>
