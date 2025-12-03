@@ -12,6 +12,6 @@ export const SAMPLE_CONTENT = `
 
 <p><comment data="The power rule states that the derivative of $x^n$ is $n*x^{n-1}$. This is one of the most fundamental rules in calculus and will be used extensively throughout this course. Make sure you understand it well before moving on to more complex derivatives." data-title="Hint">Need help?</comment></p>
 
-<response question="What is the derivative of x^2?"><p></p></response>
+<response question="What is the derivative of f(x)?"><p></p></response>
 
 `;
