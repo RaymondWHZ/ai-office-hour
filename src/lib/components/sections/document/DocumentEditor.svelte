@@ -3,9 +3,11 @@
   import { StarterKit } from "@tiptap/starter-kit";
   import AskTutorPopup from "./AskTutorPopup.svelte";
   import {
+    CircleHelp,
     Code,
     List,
     ListOrdered,
+    LoaderCircle,
     MessageSquareHeart,
     SeparatorHorizontal,
     TextQuote,
@@ -81,6 +83,41 @@
     const { from, to } = $editor.state.selection;
     const selectedText = $editor.state.doc.textBetween(from, to);
     askTutorPopup.open(askTutorButton, selectedText);
+  };
+
+  let isExplaining = $state(false);
+
+  const handleWhatsThisClick = async () => {
+    const { from, to } = $editor.state.selection;
+    const selectedText = $editor.state.doc.textBetween(from, to);
+
+    if (!selectedText.trim()) return;
+
+    isExplaining = true;
+
+    try {
+      const response = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedText }),
+      });
+
+      const { title, explanation } = await response.json();
+
+      // Replace selection with comment node wrapping the selected text
+      $editor
+        .chain()
+        .focus()
+        .deleteRange({ from, to })
+        .insertContentAt(from, {
+          type: "comment",
+          attrs: { comment: explanation, title },
+          content: [{ type: "text", text: selectedText }],
+        })
+        .run();
+    } finally {
+      isExplaining = false;
+    }
   };
 </script>
 
@@ -242,6 +279,19 @@
         {@render markButton("`Code`", "font-mono pt-1", "code")}
 
         <span class="mx-1 text-gray-300">|</span>
+
+        <button
+          class="flex items-center gap-1 px-2 outline-none hover:bg-accent disabled:opacity-50"
+          onclick={handleWhatsThisClick}
+          disabled={isExplaining}
+        >
+          {#if isExplaining}
+            <LoaderCircle class="size-4 animate-spin" />
+          {:else}
+            <CircleHelp class="size-4" />
+          {/if}
+          What's this?
+        </button>
 
         <button
           bind:this={askTutorButton}
