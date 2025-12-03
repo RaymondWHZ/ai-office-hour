@@ -4,7 +4,6 @@
   import type { TutorMessage } from "$lib/tools";
   import ChatPanel from "../chat/ChatPanel.svelte";
   import ChatInput from "../chat/ChatInput.svelte";
-  import { responseState } from "$lib/components/sections/document/extensions";
 
   interface Props {
     documentContent: string;
@@ -28,11 +27,6 @@
     const formattedMessage = `Regarding: "${selectedText}"\n\nQuestion: ${question}`;
     chatPanel?.submitMessage(formattedMessage);
   };
-
-  // Keep document context in sync for response block reviews
-  $effect(() => {
-    responseState.documentContext = documentContent;
-  });
 </script>
 
 <div class="mx-auto w-full flex-1 overflow-hidden">

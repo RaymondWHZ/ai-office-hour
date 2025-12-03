@@ -10,10 +10,9 @@
     Lightbulb,
     LoaderCircle,
   } from "@lucide/svelte";
-  import { responseState } from "./response.svelte";
   import type { NodeViewProps } from "@tiptap/core";
 
-  let { node, updateAttributes, deleteNode }: NodeViewProps = $props();
+  let { node, editor, updateAttributes, deleteNode }: NodeViewProps = $props();
 
   const question = $derived(node.attrs.question || "");
   const hint = $derived(node.attrs.hint || "");
@@ -56,7 +55,7 @@
         body: JSON.stringify({
           question,
           answer: answerText,
-          documentContext: responseState.documentContext,
+          documentContext: editor.getHTML(),
         }),
       });
 
