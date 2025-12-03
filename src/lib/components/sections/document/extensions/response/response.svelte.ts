@@ -1,10 +1,5 @@
-interface ResponseSubmission {
-  question?: string;
-  answer: string;
-}
-
 interface ResponseState {
-  pendingSubmission?: ResponseSubmission;
+  documentContext?: string;
 }
 
 export const responseState = $state<ResponseState>({});

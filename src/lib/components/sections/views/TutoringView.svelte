@@ -29,19 +29,9 @@
     chatPanel?.submitMessage(formattedMessage);
   };
 
-  // Handle response block submissions
+  // Keep document context in sync for response block reviews
   $effect(() => {
-    const submission = responseState.pendingSubmission;
-    if (submission) {
-      let formattedMessage = "[Student Responsed]\n\n";
-      if (submission.question) {
-        formattedMessage += `Question: ${submission.question}\n\n`;
-      }
-      formattedMessage += `Answer: ${submission.answer}`;
-
-      chatPanel?.submitMessage(formattedMessage);
-      responseState.pendingSubmission = undefined;
-    }
+    responseState.documentContext = documentContent;
   });
 </script>
 

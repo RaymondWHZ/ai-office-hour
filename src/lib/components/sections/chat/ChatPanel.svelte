@@ -8,7 +8,7 @@
   import { Chat } from "@ai-sdk/svelte";
   import type { TutorMessage } from "$lib/tools";
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
-  import { applyEdits, updateResponseBlock } from "$lib/documentEditor";
+  import { applyEdits } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
   import { getSelectedModel } from "$lib/stores/modelStore.svelte";
 
@@ -70,35 +70,6 @@
                 editError instanceof Error
                   ? editError.message
                   : "Failed to apply edits.",
-            },
-          });
-        }
-      }
-
-      if (toolCall.toolName === "update_response") {
-        const { question, status, hint } = toolCall.input;
-        try {
-          documentContent = updateResponseBlock(
-            documentContent,
-            question,
-            status,
-            hint,
-          );
-          chat.addToolOutput({
-            tool: "update_response",
-            toolCallId: toolCall.toolCallId,
-            output: { success: true },
-          });
-        } catch (updateError) {
-          chat.addToolOutput({
-            tool: "update_response",
-            toolCallId: toolCall.toolCallId,
-            output: {
-              success: false,
-              error:
-                updateError instanceof Error
-                  ? updateError.message
-                  : "Failed to update response block.",
             },
           });
         }
@@ -241,34 +212,6 @@
                 </div>
                 <p class="m-0 text-sm text-gray-600">
                   {result?.error ?? "No response from edit tool."}
-                </p>
-              {/if}
-            </Card>
-          {/if}
-        {:else if part.type === "tool-update_response"}
-          {#if part.state === "input-streaming"}
-            <!-- Loading: Updating response -->
-            <Card class="flex flex-row items-center gap-3">
-              <Loader />
-              <span class="font-medium">Updating response...</span>
-            </Card>
-          {:else}
-            {@const result = part.output}
-            <!-- Update result indicator -->
-            <Card class="flex flex-col gap-2">
-              {#if result?.success}
-                <div class="flex flex-row items-center gap-3">
-                  <SquareCheck />
-                  <span class="font-medium">Response reviewed</span>
-                </div>
-              {:else}
-                <div class="flex flex-row items-center gap-3">
-                  <span class="font-medium text-red-600">
-                    Failed to update response
-                  </span>
-                </div>
-                <p class="m-0 text-sm text-gray-600">
-                  {result?.error ?? "No response from update tool."}
                 </p>
               {/if}
             </Card>

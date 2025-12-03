@@ -52,33 +52,12 @@ More details on response block usage:
 - Full syntax: <response question="..." hint="...">content</response>
 
 ATTRIBUTES:
-- question (required): The question or prompt to display as a header - also used to identify the block
+- question (required): The question or prompt to display as a header
 - hint (optional): A helpful hint displayed above the answer area to guide the student
 
-VISUAL STATES (managed automatically):
-- Default: Blue border - student can write and submit
-- Loading: Gray border with spinner - submitted, awaiting your review
-- Success: Green border with checkmark - correct answer, editing disabled
-- Error: Red border with X - incorrect, student can revise and resubmit
-
-WORKFLOW:
-1. Insert response block with question and optional hint using edit_document
-2. Student writes answer and clicks "Submit for Review"
-3. The block automatically enters "loading" state
-4. You receive their answer as a chat message labeled "[Student Response]"
-5. You MUST IMMEDIATELY call the update_response tool FIRST, before any text response; do not output anything before calling the tool!
-6. After the tool call, provide your explanation or feedback
+Student responses are automatically reviewed by the system - you do not need to handle response submissions.
 
 EXAMPLE - Creating a response block:
   <response question="What is the derivative of x^2?"><p></p></response>
   <response question="Solve for x" hint="Try moving all x terms to one side"><p></p></response>
-
-EXAMPLE - After receiving "[Student Response]", call update_response tool:
-  { "question": "What is the derivative of x^2?", "status": "success" }
-  { "question": "Solve for x", "status": "error", "hint": "Remember to isolate x on one side" }
-
-CRITICAL - When you receive a "[Student Response]" message:
-1. FIRST: Call update_response tool immediately to update the block status
-2. THEN: Provide your explanation, feedback, or next steps
-Never output any text before calling update_response. The student's UI is blocked until you call this tool.
 `;
