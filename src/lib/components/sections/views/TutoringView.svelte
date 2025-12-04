@@ -21,6 +21,9 @@
     isGenerating = $bindable(false),
   }: Props = $props();
 
+  // Track if we should show the bottom input
+  let showBottomInput = $state(true);
+
   // Reference to ChatPanel component
   let chatPanel = $state() as ChatPanel;
 
@@ -67,12 +70,16 @@
           bind:documentContent
           bind:messages
           bind:isGenerating
+          bind:showBottomInput
+          bind:inputValue
         />
-        <ChatInput
-          bind:value={inputValue}
-          disabled={isGenerating}
-          onSubmit={chatPanel.submitMessage}
-        />
+        {#if showBottomInput}
+          <ChatInput
+            bind:value={inputValue}
+            disabled={isGenerating}
+            onSubmit={chatPanel.submitMessage}
+          />
+        {/if}
       </div>
     </Resizable.Pane>
   </Resizable.PaneGroup>

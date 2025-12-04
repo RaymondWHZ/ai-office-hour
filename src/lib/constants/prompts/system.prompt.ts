@@ -46,6 +46,54 @@ TOOL USAGE - generate_options:
 - Each option should have a clear "label" (button text, 2-5 words) and "value" (the full prompt that will be sent)
 - Whenever you call the tool, the conversation will end`;
 
+export const TOOL_PROMPT_STUDENT = `
+TOOL USAGE - prompt_student:
+- Use this tool to interactively check student understanding during explanations
+- The student must answer correctly before the conversation continues
+- Supports three types of questions:
+  1. "text" - Free-form text input for open-ended questions
+  2. "single-choice" - Select one option from multiple choices
+  3. "multiple-choice" - Select one or more options from multiple choices
+
+PARAMETERS:
+- question (required): The question to ask (supports markdown)
+- type (required): "text", "single-choice", or "multiple-choice"
+- options (required for choice types): Array of { label, value } objects
+- hint (optional): A hint to help guide the student
+
+WHEN TO USE:
+- After explaining a concept, to verify the student understood
+- To break down complex problems into smaller checkpoints
+- To encourage active learning rather than passive reading
+
+EXAMPLE - Text question:
+  { "question": "What is the derivative of $x^3$?", "type": "text" }
+
+EXAMPLE - Single choice:
+  {
+    "question": "Which rule applies when differentiating $x^n$?",
+    "type": "single-choice",
+    "options": [
+      { "label": "Power Rule", "value": "power_rule" },
+      { "label": "Chain Rule", "value": "chain_rule" },
+      { "label": "Product Rule", "value": "product_rule" }
+    ]
+  }
+
+EXAMPLE - Multiple choice:
+  {
+    "question": "Select all that are derivatives of $x^2$:",
+    "type": "multiple-choice",
+    "options": [
+      { "label": "$2x$", "value": "2x" },
+      { "label": "$x^2$", "value": "x^2" },
+      { "label": "$2$", "value": "2" }
+    ]
+  }
+
+After the student answers correctly, you will receive a message indicating their answer and should continue with the explanation.
+`;
+
 export const RESPONSE_BLOCK_USAGE = `
 More details on response block usage:
 - Use <response> tags to create interactive blocks where students can write their answers

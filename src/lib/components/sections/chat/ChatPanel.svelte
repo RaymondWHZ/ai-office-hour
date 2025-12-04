@@ -4,49 +4,58 @@
   import { Button } from "$lib/components/ui/button";
   import { Card } from "$lib/components/ui/card";
   import { Loader } from "$lib/components/ui/loader";
+  import { Textarea } from "$lib/components/ui/textarea";
   import { START_OPTIONS } from "$lib/constants/startOptions";
   import { Chat } from "@ai-sdk/svelte";
-  import type { TutorMessage } from "$lib/tools";
+  import type { TutorMessage, PromptStudentInput } from "$lib/tools";
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
   import { applyEdits } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
   import { getSelectedModel } from "$lib/stores/modelStore.svelte";
+  import ChatPromptBlock from "./ChatPromptBlock.svelte";
 
   interface Props {
     documentContent?: string;
     messages?: TutorMessage[];
     isGenerating?: boolean;
+    hasActivePrompt?: boolean;
+    showBottomInput?: boolean;
+    inputValue?: string;
+    onSubmit?: (message: string) => void;
   }
 
   let {
     documentContent = $bindable(""),
     messages = $bindable([]),
     isGenerating = $bindable(false),
+    hasActivePrompt = $bindable(false),
+    showBottomInput = $bindable(true),
+    inputValue = $bindable(""),
+    onSubmit,
   }: Props = $props();
 
-  // eslint-disable-next-line no-unassigned-vars -- This will be binded to the messages container div
   let messagesContainer: HTMLDivElement;
 
-  // Initialize Chat instance with onData callback to handle tool results
+  // Track pending prompt tool calls that need output
+  let pendingPromptToolCalls = $state<
+    Map<string, { conversationContext: string }>
+  >(new Map());
+
   const chat = new Chat<TutorMessage>({
     messages,
 
     sendAutomaticallyWhen: ({ messages }) => {
-      // If the last message is generating options, do not continue automatically
       const lastMessage = messages[messages.length - 1];
       if (!lastMessage || lastMessage.role !== "assistant") return false;
       const lastPart = lastMessage.parts[lastMessage.parts.length - 1];
       if (lastPart.type === "tool-generate_options") return false;
+      if (lastPart.type === "tool-prompt_student") return false;
 
       return lastAssistantMessageIsCompleteWithToolCalls({ messages });
     },
 
-    // run client-side tools that are automatically executed:
     async onToolCall({ toolCall }) {
-      // Check if it's a dynamic tool first for proper type narrowing
-      if (toolCall.dynamic) {
-        return;
-      }
+      if (toolCall.dynamic) return;
 
       if (toolCall.toolName === "edit_document") {
         const { edits, summary } = toolCall.input;
@@ -55,10 +64,7 @@
           chat.addToolOutput({
             tool: "edit_document",
             toolCallId: toolCall.toolCallId,
-            output: {
-              success: true,
-              summary,
-            },
+            output: { success: true, summary },
           });
         } catch (editError) {
           chat.addToolOutput({
@@ -74,10 +80,27 @@
           });
         }
       }
+
+      if (toolCall.toolName === "prompt_student") {
+        // Get conversation context from last assistant message
+        const lastAssistantMessage = chat.messages
+          .filter((m) => m.role === "assistant")
+          .pop();
+        const conversationContext =
+          lastAssistantMessage?.parts
+            .filter((p) => p.type === "text" && "text" in p)
+            .map((p) => (p as { type: "text"; text: string }).text)
+            .join("\n") || "";
+
+        // Store the context for later use by the component
+        pendingPromptToolCalls.set(toolCall.toolCallId, {
+          conversationContext,
+        });
+      }
     },
   });
 
-  // Sync messages with parent component when active session or messages change
+  // Sync messages
   $effect(() => {
     chat.messages = messages;
   });
@@ -87,38 +110,75 @@
     isGenerating = chat.status === "streaming" || chat.status === "submitted";
   });
 
-  // Derive the last part of the last assistant message
+  // Derive if there's an active (unanswered, not dismissed) prompt in the last message
+  const activePromptInfo = $derived.by(() => {
+    const lastMessage = chat.messages[chat.messages.length - 1];
+    if (!lastMessage || lastMessage.role !== "assistant") return null;
+
+    for (const part of lastMessage.parts) {
+      if (part.type === "tool-prompt_student") {
+        const output = part.output;
+        // Active if no output yet, or output exists but not success and not dismissed
+        if (!output || (!output.success && !output.dismissed)) {
+          return { part, hasOutput: !!output };
+        }
+      }
+    }
+    return null;
+  });
+
+  // Update hasActivePrompt binding
+  $effect(() => {
+    hasActivePrompt = activePromptInfo !== null;
+  });
+
+  // Derive if we're on start screen (no messages)
+  const isStartScreen = $derived(chat.messages.length === 0);
+
+  // Update showBottomInput binding - hide bottom input on start screen or when there's an active prompt
+  $effect(() => {
+    showBottomInput = !isStartScreen && !hasActivePrompt;
+  });
+
   const lastPart = $derived.by(() => {
     const lastMessage = chat.messages[chat.messages.length - 1];
     if (!lastMessage || lastMessage.role !== "assistant") return null;
     return lastMessage.parts[lastMessage.parts.length - 1];
   });
 
-  // Derive if the last part is in a loading state
-  const lastPartIsLoading = $derived.by(() => {
-    if (!lastPart) return false;
-    const status = "state" in lastPart ? lastPart.state : undefined;
-    return status === "streaming" || status === "input-streaming";
-  });
-
-  // Export function for parent component to trigger message submission
   export const submitMessage = (message: string) => {
     const textToSend = message.trim();
     if (textToSend && !isGenerating) {
-      console.log(documentContent);
       chat.sendMessage(
         { text: textToSend },
-        {
-          body: {
-            documentContent,
-            model: getSelectedModel(),
-          },
-        },
+        { body: { documentContent, model: getSelectedModel() } },
       );
     }
   };
 
-  // Auto-scroll to bottom when new messages arrive
+  const handlePromptComplete = (
+    toolCallId: string,
+    output: { success: boolean; answer?: string; dismissed?: boolean },
+    continueMessage?: string,
+  ) => {
+    chat.addToolOutput({
+      tool: "prompt_student",
+      toolCallId,
+      output,
+    });
+
+    if (continueMessage) {
+      chat.sendMessage(
+        { text: continueMessage },
+        { body: { documentContent, model: getSelectedModel() } },
+      );
+    }
+
+    // Clean up pending context
+    pendingPromptToolCalls.delete(toolCallId);
+  };
+
+  // Auto-scroll
   $effect(() => {
     void lastPart;
     if (messagesContainer) {
@@ -126,7 +186,6 @@
     }
   });
 
-  // Initial scroll to bottom on mount
   onMount(() => {
     if (messagesContainer) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -138,16 +197,50 @@
   class="flex flex-1 flex-col gap-4 overflow-y-auto px-12 py-6"
   bind:this={messagesContainer}
 >
-  {#if chat.messages.length === 0}
-    <div class="flex h-full flex-col items-center justify-center gap-6 px-6">
+  {#if isStartScreen}
+    {@const handleStartKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
+        e.preventDefault();
+        submitMessage(inputValue);
+        inputValue = "";
+      }
+    }}
+    <div class="flex h-full flex-col items-center justify-center gap-8 px-6">
       <div class="text-center">
-        <p class="m-0 mb-2 text-lg font-semibold text-gray-700">
-          How would you like to start?
+        <p class="m-0 mb-2 text-xl font-semibold text-gray-700">
+          Welcome to AI Office Hour
         </p>
         <p class="m-0 text-sm text-gray-500">
-          Choose a learning style to begin exploring your assignment
+          Ask a question or choose a learning style to get started
         </p>
       </div>
+
+      <!-- Input in the middle -->
+      <div class="flex w-full max-w-md gap-3">
+        <Textarea
+          bind:value={inputValue}
+          onkeydown={handleStartKeyDown}
+          placeholder="Ask a question..."
+          disabled={isGenerating}
+          class="min-h-[60px]"
+        />
+        <Button
+          onclick={() => {
+            submitMessage(inputValue);
+            inputValue = "";
+          }}
+          disabled={isGenerating || !inputValue.trim()}
+        >
+          Ask
+        </Button>
+      </div>
+
+      <div class="flex items-center gap-4 text-sm text-gray-400">
+        <span class="h-px w-12 bg-gray-200"></span>
+        <span>or choose a learning style</span>
+        <span class="h-px w-12 bg-gray-200"></span>
+      </div>
+
       <div class="flex flex-col gap-3 sm:flex-row">
         {#each START_OPTIONS as option}
           <Card
@@ -173,7 +266,6 @@
         {message.role === "user" ? "You" : "AI Teaching Assistant"}
       </div>
 
-      <!-- Render each part in order -->
       {#each message.parts as part}
         {#if part.type === "text" && "text" in part && part.text.trim()}
           <div class="py-4">
@@ -185,30 +277,24 @@
           </div>
         {:else if part.type === "tool-edit_document"}
           {#if part.state === "input-streaming"}
-            <!-- Loading: Generating edits -->
             <Card class="flex flex-row items-center gap-3">
               <Loader />
               <span class="font-medium">Editing document...</span>
             </Card>
           {:else}
             {@const result = part.output}
-            <!-- Edit result indicator -->
             <Card class="flex flex-col gap-2">
               {#if result?.success}
                 <div class="flex flex-row items-center gap-3">
                   <SquareCheck />
-                  <span class="font-medium">
-                    Document updated successfully
-                  </span>
+                  <span class="font-medium">Document updated successfully</span>
                 </div>
-                <p class="m-0 text-sm text-gray-600">
-                  {result.summary}
-                </p>
+                <p class="m-0 text-sm text-gray-600">{result.summary}</p>
               {:else}
                 <div class="flex flex-row items-center gap-3">
-                  <span class="font-medium text-red-600">
-                    Failed to update document
-                  </span>
+                  <span class="font-medium text-red-600"
+                    >Failed to update document</span
+                  >
                 </div>
                 <p class="m-0 text-sm text-gray-600">
                   {result?.error ?? "No response from edit tool."}
@@ -221,10 +307,8 @@
           {@const isLastMessage = messageIndex === chat.messages.length - 1}
 
           {#if part.state === "input-streaming"}
-            <!-- Loading: Generating options -->
             <Loader />
           {:else if options && options.length > 0 && isLastMessage}
-            <!-- Options - only show for last message -->
             <div class="flex flex-wrap gap-2">
               {#each options as option}
                 <Button
@@ -237,12 +321,22 @@
               {/each}
             </div>
           {/if}
+        {:else if part.type === "tool-prompt_student"}
+          {@const toolCallId = part.toolCallId}
+          {@const pendingContext = pendingPromptToolCalls.get(toolCallId)}
+          <ChatPromptBlock
+            input={part.input as PromptStudentInput}
+            output={part.output}
+            toolState={part.state}
+            conversationContext={pendingContext?.conversationContext || ""}
+            onComplete={(output, continueMessage) =>
+              handlePromptComplete(toolCallId, output, continueMessage)}
+          />
         {/if}
       {/each}
     </div>
   {/each}
 
-  <!-- Global loading indicator -->
   {#if isGenerating && !lastPart}
     <Loader />
   {/if}

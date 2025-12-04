@@ -4,13 +4,21 @@ import type { RequestHandler } from "./$types";
 import { anthropic } from "$lib/ai";
 
 export const POST: RequestHandler = async ({ request }) => {
-  const { question, answer, documentContext } = await request.json();
+  const { question, answer, documentContext, conversationContext } =
+    await request.json();
+
+  let contextSection = "";
+  if (documentContext) {
+    contextSection = `Document Context:\n${documentContext}`;
+  } else if (conversationContext) {
+    contextSection = `Conversation Context (tutor's explanation before this question):\n${conversationContext}`;
+  }
 
   const prompt = `Question: ${question}
 
 Student's Answer: ${answer}
 
-${documentContext ? `Document Context:\n${documentContext}` : ""}`;
+${contextSection}`;
 
   const result = await generateText({
     model: anthropic("claude-haiku-4-5"),

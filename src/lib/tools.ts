@@ -15,6 +15,38 @@ export const optionSchema = z.object({
 
 export type Option = z.infer<typeof optionSchema>;
 
+export const choiceOptionSchema = z.object({
+  label: z
+    .string()
+    .describe("The display text for this choice (supports markdown)"),
+  value: z.string().describe("The value to submit if this choice is selected"),
+});
+
+export type ChoiceOption = z.infer<typeof choiceOptionSchema>;
+
+export const promptStudentSchema = z.object({
+  question: z
+    .string()
+    .describe("The question or prompt to display (supports markdown)"),
+  type: z
+    .enum(["text", "single-choice", "multiple-choice"])
+    .describe(
+      "The type of response expected: 'text' for free-form input, 'single-choice' for selecting one option, 'multiple-choice' for selecting multiple options",
+    ),
+  options: z
+    .array(choiceOptionSchema)
+    .optional()
+    .describe(
+      "Required for choice types. Array of options for the student to choose from.",
+    ),
+  hint: z
+    .string()
+    .optional()
+    .describe("Optional hint to help guide the student's response"),
+});
+
+export type PromptStudentInput = z.infer<typeof promptStudentSchema>;
+
 export const tools = {
   edit_document: tool({
     description:
@@ -68,6 +100,24 @@ export const tools = {
         options,
       };
     },
+  }),
+  prompt_student: tool({
+    description:
+      "Prompt the student to answer a question to check their understanding. Use this to interactively test comprehension during explanations. The student must answer correctly before the conversation can continue. Supports text input or multiple choice questions.",
+    inputSchema: promptStudentSchema,
+    outputSchema: z.object({
+      success: z
+        .boolean()
+        .describe("Whether the student has answered correctly"),
+      answer: z
+        .string()
+        .optional()
+        .describe("The student's answer (filled in by the UI)"),
+      dismissed: z
+        .boolean()
+        .optional()
+        .describe("Whether the student dismissed the prompt"),
+    }),
   }),
 };
 
