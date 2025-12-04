@@ -19,6 +19,7 @@
   const question = $derived(node.attrs.question || "");
   const hint = $derived(node.attrs.hint || "");
   const status = $derived(node.attrs.status || "");
+  const hideQuestion = $derived(node.attrs.hideQuestion || false);
 
   const isSuccess = $derived(status === "success");
   const isError = $derived(status === "error");
@@ -87,9 +88,17 @@
   };
 </script>
 
-<NodeViewWrapper class="my-4">
-  <Card class="w-full {cardClass()}">
-    <CardHeader class="flex flex-row items-start justify-between gap-2 pb-2">
+<NodeViewWrapper>
+  <Card class="relative w-full gap-2 p-2 {cardClass()}">
+    <button
+      class="absolute top-1 right-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+      onclick={handleDelete}
+      title="Remove this response block"
+    >
+      <X class="size-4" />
+    </button>
+
+    <CardHeader class="mt-3 flex flex-row items-start justify-between gap-2">
       <div class="flex flex-1 items-start gap-2">
         {#if isSuccess}
           <CircleCheck class="mt-0.5 size-5 shrink-0 text-green-600" />
@@ -101,7 +110,7 @@
           />
         {/if}
         <div class="flex-1">
-          {#if question}
+          {#if question && !hideQuestion}
             <div class="text-base font-semibold text-gray-800">
               {question}
             </div>
@@ -115,13 +124,6 @@
           {/if}
         </div>
       </div>
-      <button
-        class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
-        onclick={handleDelete}
-        title="Remove this response block"
-      >
-        <X class="size-4" />
-      </button>
     </CardHeader>
 
     <CardContent class="pt-0">

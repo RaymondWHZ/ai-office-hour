@@ -21,6 +21,11 @@ const ResponseNode = Node.create({
         default: "",
         parseHTML: (element) => element.getAttribute("status") || "",
       },
+      hideQuestion: {
+        default: false,
+        parseHTML: (element) =>
+          element.getAttribute("hide-question") === "true",
+      },
     };
   },
 
@@ -39,6 +44,11 @@ const ResponseNode = Node.create({
         question: node.attrs.question,
         hint: node.attrs.hint,
         status: node.attrs.status,
+        ...(node.attrs.hideQuestion
+          ? {
+              "hide-question": "true",
+            }
+          : {}),
       }),
       0,
     ];

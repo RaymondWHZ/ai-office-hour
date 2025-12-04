@@ -50,6 +50,7 @@ export const RESPONSE_BLOCK_USAGE = `
 More details on response block usage:
 - Use <response> tags to create interactive blocks where students can write their answers
 - Full syntax: <response question="..." hint="...">content</response>
+- You may optionally include "hide-question" attribute set to "true" to hide the question, when the question description repeats information already present in the document
 
 ATTRIBUTES:
 - question (required): The question or prompt to display as a header
