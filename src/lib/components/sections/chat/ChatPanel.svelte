@@ -7,7 +7,11 @@
   import { Textarea } from "$lib/components/ui/textarea";
   import { START_OPTIONS } from "$lib/constants/startOptions";
   import { Chat } from "@ai-sdk/svelte";
-  import type { TutorMessage, PromptStudentInput } from "$lib/tools";
+  import type {
+    TutorMessage,
+    PromptStudentInput,
+    UserDataParts,
+  } from "$lib/tools";
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
   import { applyEdits } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
@@ -135,14 +139,64 @@
     return lastMessage.parts[lastMessage.parts.length - 1];
   });
 
-  export const submitMessage = (message: string) => {
-    const textToSend = message.trim();
-    if (textToSend && !isGenerating) {
-      chat.sendMessage(
-        { text: textToSend },
-        { body: { documentContent, model: getSelectedModel() } },
-      );
+  // Helper to send message with data part
+  const sendWithData = (
+    text: string,
+    dataType: keyof UserDataParts,
+    data: UserDataParts[keyof UserDataParts],
+  ) => {
+    if (!text.trim() || isGenerating) return;
+    chat.sendMessage(
+      {
+        parts: [
+          { type: `data-${dataType}`, data } as never,
+          { type: "text", text: text.trim() },
+        ],
+      },
+      { body: { documentContent, model: getSelectedModel() } },
+    );
+  };
+
+  // Send user typed input
+  export const sendUserInput = (text: string) => {
+    sendWithData(text, "user-input", { text: text.trim() });
+  };
+
+  // Send start option selection
+  export const sendStartOption = (title: string, prompt: string) => {
+    sendWithData(prompt, "start-option", { title, prompt });
+  };
+
+  // Send follow-up option selection
+  export const sendFollowUpOption = (label: string, value: string) => {
+    sendWithData(value, "follow-up-option", { label, value });
+  };
+
+  // Send ask tutor (What's this?) message
+  export const sendAskTutor = (selectedText: string, question: string) => {
+    const text = `Regarding: "${selectedText}"\n\nQuestion: ${question}`;
+    sendWithData(text, "ask-tutor", { selectedText, question });
+  };
+
+  // Send ask help message from response block
+  export const sendAskHelp = (question: string, currentAnswer: string) => {
+    let text = `[Help Request]\n\nQuestion: ${question}`;
+    if (currentAnswer.trim()) {
+      text += `\n\nMy current answer: ${currentAnswer}`;
     }
+    text += `\n\nCan you give me a hint?`;
+    sendWithData(text, "ask-help", { question, currentAnswer });
+  };
+
+  // Send hidden prompt answer (auto-continue after correct answer)
+  const sendPromptAnswer = (answer: string) => {
+    const text = `[Student answered correctly: ${answer}]\n\nPlease continue with the explanation.`;
+    sendWithData(text, "prompt-answer", { answer, hidden: true });
+  };
+
+  // Legacy submitMessage for backward compatibility
+  export const submitMessage = (message: string) => {
+    sendUserInput(message);
   };
 
   const handlePromptComplete = (
@@ -156,11 +210,8 @@
       output,
     });
 
-    if (continueMessage) {
-      chat.sendMessage(
-        { text: continueMessage },
-        { body: { documentContent, model: getSelectedModel() } },
-      );
+    if (continueMessage && output.answer) {
+      sendPromptAnswer(output.answer);
     }
 
     // Clean up pending context
@@ -190,7 +241,7 @@
     {@const handleStartKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
         e.preventDefault();
-        submitMessage(inputValue);
+        sendUserInput(inputValue);
         inputValue = "";
       }
     }}
@@ -215,7 +266,7 @@
         />
         <Button
           onclick={() => {
-            submitMessage(inputValue);
+            sendUserInput(inputValue);
             inputValue = "";
           }}
           disabled={isGenerating || !inputValue.trim()}
@@ -234,7 +285,7 @@
         {#each START_OPTIONS as option}
           <Card
             class="cursor-pointer select-none"
-            onclick={() => submitMessage(option.prompt)}
+            onclick={() => sendStartOption(option.title, option.prompt)}
           >
             <span class="text-lg font-semibold">{option.title}</span>
             <span class="text-sm">{option.description}</span>
@@ -245,87 +296,139 @@
   {/if}
 
   {#each chat.messages as message, messageIndex}
-    <div class="flex flex-col gap-2">
-      <div
-        class="text-xs font-semibold tracking-wide uppercase {message.role ===
-        'user'
-          ? 'text-indigo-500'
-          : 'text-emerald-600'}"
-      >
-        {message.role === "user" ? "You" : "AI Teaching Assistant"}
-      </div>
+    {@const dataPart = message.parts.find((p) => p.type.startsWith("data-"))}
+    {@const dataType = dataPart?.type.replace("data-", "") as
+      | keyof UserDataParts
+      | undefined}
+    {@const isHidden = dataType === "prompt-answer"}
 
-      {#each message.parts as part}
-        {#if part.type === "text" && "text" in part && part.text.trim()}
-          <div class="py-4">
-            {#if message.role === "assistant"}
-              <Markdown class="prose max-w-none" value={part.text} />
-            {:else}
-              {part.text}
-            {/if}
-          </div>
-        {:else if part.type === "tool-edit_document"}
-          {#if part.state === "input-streaming"}
-            <Card class="flex flex-row items-center gap-3">
-              <Loader />
-              <span class="font-medium">Editing document...</span>
-            </Card>
-          {:else}
-            {@const result = part.output}
-            <Card class="flex flex-col gap-2">
-              {#if result?.success}
-                <div class="flex flex-row items-center gap-3">
-                  <SquareCheck />
-                  <span class="font-medium">Document updated successfully</span>
-                </div>
-                <p class="m-0 text-sm text-gray-600">{result.summary}</p>
-              {:else}
-                <div class="flex flex-row items-center gap-3">
-                  <span class="font-medium text-red-600"
-                    >Failed to update document</span
-                  >
-                </div>
-                <p class="m-0 text-sm text-gray-600">
-                  {result?.error ?? "No response from edit tool."}
-                </p>
-              {/if}
-            </Card>
-          {/if}
-        {:else if part.type === "tool-generate_options"}
-          {@const options = part.output?.options}
-          {@const isLastMessage = messageIndex === chat.messages.length - 1}
+    {#if !isHidden}
+      <div class="flex flex-col gap-2">
+        <div
+          class="text-xs font-semibold tracking-wide uppercase {message.role ===
+          'user'
+            ? 'text-indigo-500'
+            : 'text-emerald-600'}"
+        >
+          {message.role === "user" ? "You" : "AI Teaching Assistant"}
+        </div>
 
-          {#if part.state === "input-streaming"}
-            <Loader />
-          {:else if options && options.length > 0 && isLastMessage}
-            <div class="flex flex-wrap gap-2">
-              {#each options as option}
-                <Button
-                  onclick={() => submitMessage(option.value)}
-                  disabled={isGenerating}
-                  variant="outline"
+        {#each message.parts as part}
+          {#if part.type === "text" && "text" in part && part.text.trim()}
+            <div class="py-4">
+              {#if message.role === "assistant"}
+                <Markdown class="prose max-w-none" value={part.text} />
+              {:else if dataType === "user-input"}
+                <!-- Regular user input - show as is -->
+                {part.text}
+              {:else if dataType === "start-option" && dataPart && "data" in dataPart}
+                <!-- Start option - show the title -->
+                <span class="text-gray-600">Selected: </span>
+                <span class="font-medium"
+                  >{(dataPart.data as UserDataParts["start-option"])
+                    .title}</span
                 >
-                  {option.label}
-                </Button>
-              {/each}
+              {:else if dataType === "follow-up-option" && dataPart && "data" in dataPart}
+                <!-- Follow-up option - show the label -->
+                {(dataPart.data as UserDataParts["follow-up-option"]).label}
+              {:else if dataType === "ask-tutor" && dataPart && "data" in dataPart}
+                <!-- Ask tutor - show formatted with context -->
+                {@const data = dataPart.data as UserDataParts["ask-tutor"]}
+                <div class="flex flex-col gap-2">
+                  <div
+                    class="rounded border-l-4 border-blue-300 bg-blue-50 py-2 pr-3 pl-3 text-sm text-gray-600 italic"
+                  >
+                    "{data.selectedText}"
+                  </div>
+                  <div>{data.question}</div>
+                </div>
+              {:else if dataType === "ask-help" && dataPart && "data" in dataPart}
+                <!-- Ask help - show formatted -->
+                {@const data = dataPart.data as UserDataParts["ask-help"]}
+                <div class="flex flex-col gap-2">
+                  <div class="text-sm text-gray-500">
+                    Help requested for: <span class="font-medium text-gray-700"
+                      >{data.question}</span
+                    >
+                  </div>
+                  {#if data.currentAnswer.trim()}
+                    <div class="text-sm">
+                      <span class="text-gray-500">My attempt:</span>
+                      {data.currentAnswer}
+                    </div>
+                  {/if}
+                </div>
+              {:else}
+                <!-- Fallback for messages without data parts -->
+                {part.text}
+              {/if}
             </div>
+          {:else if part.type === "tool-edit_document"}
+            {#if part.state === "input-streaming"}
+              <Card class="flex flex-row items-center gap-3">
+                <Loader />
+                <span class="font-medium">Editing document...</span>
+              </Card>
+            {:else}
+              {@const result = part.output}
+              <Card class="flex flex-col gap-2">
+                {#if result?.success}
+                  <div class="flex flex-row items-center gap-3">
+                    <SquareCheck />
+                    <span class="font-medium"
+                      >Document updated successfully</span
+                    >
+                  </div>
+                  <p class="m-0 text-sm text-gray-600">{result.summary}</p>
+                {:else}
+                  <div class="flex flex-row items-center gap-3">
+                    <span class="font-medium text-red-600"
+                      >Failed to update document</span
+                    >
+                  </div>
+                  <p class="m-0 text-sm text-gray-600">
+                    {result?.error ?? "No response from edit tool."}
+                  </p>
+                {/if}
+              </Card>
+            {/if}
+          {:else if part.type === "tool-generate_options"}
+            {@const options = part.output?.options}
+            {@const isLastMessage = messageIndex === chat.messages.length - 1}
+
+            {#if part.state === "input-streaming"}
+              <Loader />
+            {:else if options && options.length > 0 && isLastMessage}
+              <div class="flex flex-wrap gap-2">
+                {#each options as option}
+                  <Button
+                    onclick={() =>
+                      sendFollowUpOption(option.label, option.value)}
+                    disabled={isGenerating}
+                    variant="outline"
+                  >
+                    {option.label}
+                  </Button>
+                {/each}
+              </div>
+            {/if}
+          {:else if part.type === "tool-prompt_student"}
+            {@const toolCallId = part.toolCallId}
+            {@const pendingContext = pendingPromptToolCalls.get(toolCallId)}
+            {@const isLastMessage = messageIndex === chat.messages.length - 1}
+            <ChatPromptBlock
+              input={part.input as PromptStudentInput}
+              output={part.output}
+              toolState={part.state}
+              conversationContext={pendingContext?.conversationContext || ""}
+              canUndo={isLastMessage}
+              onComplete={(output, continueMessage) =>
+                handlePromptComplete(toolCallId, output, continueMessage)}
+            />
           {/if}
-        {:else if part.type === "tool-prompt_student"}
-          {@const toolCallId = part.toolCallId}
-          {@const pendingContext = pendingPromptToolCalls.get(toolCallId)}
-          {@const isLastMessage = messageIndex === chat.messages.length - 1}
-          <ChatPromptBlock
-            input={part.input as PromptStudentInput}
-            output={part.output}
-            toolState={part.state}
-            conversationContext={pendingContext?.conversationContext || ""}
-            canUndo={isLastMessage}
-            onComplete={(output, continueMessage) =>
-              handlePromptComplete(toolCallId, output, continueMessage)}
-          />
-        {/if}
-      {/each}
-    </div>
+        {/each}
+      </div>
+    {/if}
   {/each}
 
   {#if isGenerating && !lastPart}
@@ -337,7 +440,7 @@
   {@const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
       e.preventDefault();
-      submitMessage(inputValue);
+      sendUserInput(inputValue);
       inputValue = "";
     }
   }}
@@ -350,7 +453,7 @@
     />
     <Button
       onclick={() => {
-        submitMessage(inputValue);
+        sendUserInput(inputValue);
         inputValue = "";
       }}
       disabled={isGenerating || !inputValue.trim()}

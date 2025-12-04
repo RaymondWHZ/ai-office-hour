@@ -25,20 +25,14 @@
 
   // Handle "Ask Tutor" from DocumentEditor
   const handleAskTutor = (selectedText: string, question: string) => {
-    const formattedMessage = `Regarding: "${selectedText}"\n\nQuestion: ${question}`;
-    chatPanel?.submitMessage(formattedMessage);
+    chatPanel?.sendAskTutor(selectedText, question);
   };
 
   // Handle "Ask for Help" from response blocks
   $effect(() => {
     const pending = askHelpState.pending;
     if (pending) {
-      let message = `[Help Request]\n\nQuestion: ${pending.question}`;
-      if (pending.currentAnswer.trim()) {
-        message += `\n\nMy current answer: ${pending.currentAnswer}`;
-      }
-      message += `\n\nCan you give me a hint?`;
-      chatPanel?.submitMessage(message);
+      chatPanel?.sendAskHelp(pending.question, pending.currentAnswer);
       askHelpState.pending = undefined;
     }
   });
