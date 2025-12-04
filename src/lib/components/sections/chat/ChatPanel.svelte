@@ -17,21 +17,15 @@
   interface Props {
     documentContent?: string;
     messages?: TutorMessage[];
-    isGenerating?: boolean;
-    hasActivePrompt?: boolean;
-    showBottomInput?: boolean;
     inputValue?: string;
-    onSubmit?: (message: string) => void;
+    isGenerating?: boolean;
   }
 
   let {
     documentContent = $bindable(""),
     messages = $bindable([]),
-    isGenerating = $bindable(false),
-    hasActivePrompt = $bindable(false),
-    showBottomInput = $bindable(true),
     inputValue = $bindable(""),
-    onSubmit,
+    isGenerating = $bindable(false),
   }: Props = $props();
 
   let messagesContainer: HTMLDivElement;
@@ -111,34 +105,29 @@
   });
 
   // Derive if there's an active (unanswered, not dismissed) prompt in the last message
-  const activePromptInfo = $derived.by(() => {
+  const hasActivePrompt = $derived.by(() => {
     const lastMessage = chat.messages[chat.messages.length - 1];
-    if (!lastMessage || lastMessage.role !== "assistant") return null;
+    if (!lastMessage || lastMessage.role !== "assistant") return false;
 
     for (const part of lastMessage.parts) {
       if (part.type === "tool-prompt_student") {
         const output = part.output;
         // Active if no output yet, or output exists but not success and not dismissed
         if (!output || (!output.success && !output.dismissed)) {
-          return { part, hasOutput: !!output };
+          return true;
         }
       }
     }
-    return null;
-  });
-
-  // Update hasActivePrompt binding
-  $effect(() => {
-    hasActivePrompt = activePromptInfo !== null;
+    return false;
   });
 
   // Derive if we're on start screen (no messages)
   const isStartScreen = $derived(chat.messages.length === 0);
 
-  // Update showBottomInput binding - hide bottom input on start screen or when there's an active prompt
-  $effect(() => {
-    showBottomInput = !isStartScreen && !hasActivePrompt;
-  });
+  // Derive if bottom input should be shown
+  const showBottomInput = $derived(
+    !isStartScreen && !hasActivePrompt && !isGenerating,
+  );
 
   const lastPart = $derived.by(() => {
     const lastMessage = chat.messages[chat.messages.length - 1];
@@ -324,11 +313,13 @@
         {:else if part.type === "tool-prompt_student"}
           {@const toolCallId = part.toolCallId}
           {@const pendingContext = pendingPromptToolCalls.get(toolCallId)}
+          {@const isLastMessage = messageIndex === chat.messages.length - 1}
           <ChatPromptBlock
             input={part.input as PromptStudentInput}
             output={part.output}
             toolState={part.state}
             conversationContext={pendingContext?.conversationContext || ""}
+            canUndo={isLastMessage}
             onComplete={(output, continueMessage) =>
               handlePromptComplete(toolCallId, output, continueMessage)}
           />
@@ -341,3 +332,30 @@
     <Loader />
   {/if}
 </div>
+
+{#if showBottomInput}
+  {@const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
+      e.preventDefault();
+      submitMessage(inputValue);
+      inputValue = "";
+    }
+  }}
+  <div class="flex gap-3 border-t px-12 pt-6 pb-12">
+    <Textarea
+      bind:value={inputValue}
+      onkeydown={handleKeyDown}
+      placeholder="Ask a question..."
+      disabled={isGenerating}
+    />
+    <Button
+      onclick={() => {
+        submitMessage(inputValue);
+        inputValue = "";
+      }}
+      disabled={isGenerating || !inputValue.trim()}
+    >
+      Ask
+    </Button>
+  </div>
+{/if}

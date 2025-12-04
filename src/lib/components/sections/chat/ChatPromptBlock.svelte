@@ -25,11 +25,18 @@
     output?: PromptOutput;
     toolState?: string;
     conversationContext: string;
+    canUndo?: boolean;
     onComplete: (output: PromptOutput, continueMessage?: string) => void;
   }
 
-  let { input, output, toolState, conversationContext, onComplete }: Props =
-    $props();
+  let {
+    input,
+    output,
+    toolState,
+    conversationContext,
+    canUndo = true,
+    onComplete,
+  }: Props = $props();
 
   // Local UI state
   let textAnswer = $state("");
@@ -152,10 +159,12 @@
 {:else if isDismissed}
   <Card class="flex flex-row items-center justify-between gap-3 {cardClass}">
     <span class="text-sm text-gray-500">Question skipped</span>
-    <Button variant="ghost" size="sm" onclick={handleUndoDismiss}>
-      <RotateCcw class="mr-1 size-4" />
-      Undo
-    </Button>
+    {#if canUndo}
+      <Button variant="ghost" size="sm" onclick={handleUndoDismiss}>
+        <RotateCcw class="mr-1 size-4" />
+        Undo
+      </Button>
+    {/if}
   </Card>
 {:else}
   <Card class="relative w-full {cardClass}">

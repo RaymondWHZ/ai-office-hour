@@ -3,7 +3,6 @@
   import { Card } from "$lib/components/ui/card";
   import type { TutorMessage } from "$lib/tools";
   import ChatPanel from "../chat/ChatPanel.svelte";
-  import ChatInput from "../chat/ChatInput.svelte";
   import * as Resizable from "$lib/components/ui/resizable/index.js";
   import { askHelpState } from "$lib/components/sections/document/extensions";
 
@@ -20,9 +19,6 @@
     inputValue = $bindable(""),
     isGenerating = $bindable(false),
   }: Props = $props();
-
-  // Track if we should show the bottom input
-  let showBottomInput = $state(true);
 
   // Reference to ChatPanel component
   let chatPanel = $state() as ChatPanel;
@@ -69,17 +65,9 @@
           bind:this={chatPanel}
           bind:documentContent
           bind:messages
-          bind:isGenerating
-          bind:showBottomInput
           bind:inputValue
+          bind:isGenerating
         />
-        {#if showBottomInput}
-          <ChatInput
-            bind:value={inputValue}
-            disabled={isGenerating}
-            onSubmit={chatPanel.submitMessage}
-          />
-        {/if}
       </div>
     </Resizable.Pane>
   </Resizable.PaneGroup>
