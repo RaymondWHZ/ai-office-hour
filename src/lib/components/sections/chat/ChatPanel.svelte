@@ -386,7 +386,7 @@
               </Card>
             {:else if part.output}
               <ChatPromptBlock
-                output={part.output}
+                data={part.output}
                 isActive={isLastMessage && !isGenerating}
                 {isLastMessage}
                 onSuccess={handlePromptSuccess}

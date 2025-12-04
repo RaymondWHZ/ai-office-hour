@@ -21,14 +21,14 @@
   }
 
   interface Props {
-    output: PromptOutput;
+    data: PromptOutput;
     isActive?: boolean;
     isLastMessage?: boolean;
     onSuccess: (answer: string) => void;
   }
 
   let {
-    output,
+    data = $bindable(),
     isActive = false,
     isLastMessage = false,
     onSuccess,
@@ -42,9 +42,9 @@
   let submitting = $state(false);
 
   // Derived states from output.state
-  const isSuccess = $derived(output.state === "success");
-  const isError = $derived(output.state === "error");
-  const isDismissed = $derived(output.state === "dismissed");
+  const isSuccess = $derived(data.state === "success");
+  const isError = $derived(data.state === "error");
+  const isDismissed = $derived(data.state === "dismissed");
 
   // Card styling based on state
   const cardClass = $derived.by(() => {
@@ -57,7 +57,7 @@
   const toggleChoice = (value: string) => {
     if (submitting || isSuccess) return;
 
-    if (output.type === "single-choice") {
+    if (data.type === "single-choice") {
       selectedChoices = new Set([value]);
     } else {
       const newSet = new Set(selectedChoices);
@@ -71,10 +71,10 @@
   };
 
   const getAnswer = (): string => {
-    if (output.type === "text") {
+    if (data.type === "text") {
       return textAnswer.trim();
     } else {
-      const selectedOptions = output.options?.filter((o) =>
+      const selectedOptions = data.options?.filter((o) =>
         selectedChoices.has(o.value),
       );
       return selectedOptions?.map((o) => o.value).join(", ") || "";
@@ -83,7 +83,7 @@
 
   const canSubmit = $derived.by(() => {
     if (submitting || isSuccess) return false;
-    if (output.type === "text") {
+    if (data.type === "text") {
       return textAnswer.trim().length > 0;
     } else {
       return selectedChoices.size > 0;
@@ -92,16 +92,15 @@
 
   // Evaluate choice answers locally using the correct/hint metadata
   const evaluateChoiceAnswer = (): { success: boolean; hint?: string } => {
-    if (!output.options)
-      return { success: false, hint: "No options available." };
+    if (!data.options) return { success: false, hint: "No options available." };
 
-    if (output.type === "single-choice") {
+    if (data.type === "single-choice") {
       if (selectedChoices.size !== 1) {
         return { success: false, hint: "Please select one option." };
       }
 
       const selectedValue = Array.from(selectedChoices)[0];
-      const selectedOption = output.options.find(
+      const selectedOption = data.options.find(
         (option) => option.value === selectedValue,
       );
 
@@ -114,7 +113,7 @@
         };
       }
     } else {
-      for (const option of output.options) {
+      for (const option of data.options) {
         const isSelected = selectedChoices.has(option.value);
         const shouldBeSelected = option.correct;
 
@@ -143,15 +142,15 @@
     errorHint = undefined;
 
     // For choice questions, evaluate locally
-    if (output.type !== "text" && output.options) {
+    if (data.type !== "text" && data.options) {
       const result = evaluateChoiceAnswer();
 
       if (result.success) {
-        output.state = "success";
+        data.state = "success";
         successAnswer = answer;
         onSuccess(answer);
       } else {
-        output.state = "error";
+        data.state = "error";
         errorHint = result.hint || "That's not quite right. Try again!";
       }
       submitting = false;
@@ -164,24 +163,24 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: output.question,
+          question: data.question,
           answer,
-          correctAnswer: output.correctAnswer,
+          correctAnswer: data.correctAnswer,
         }),
       });
 
       const result = await response.json();
 
       if (result.status === "success") {
-        output.state = "success";
+        data.state = "success";
         successAnswer = answer;
         onSuccess(answer);
       } else {
-        output.state = "error";
+        data.state = "error";
         errorHint = result.hint;
       }
     } catch {
-      output.state = "error";
+      data.state = "error";
       errorHint = "Failed to review your answer. Please try again.";
     } finally {
       submitting = false;
@@ -202,7 +201,7 @@
   >
     <span class="text-sm text-gray-500">Question skipped</span>
     {#if isLastMessage}
-      <Button variant="ghost" size="sm" onclick={() => (output.state = "")}>
+      <Button variant="ghost" size="sm" onclick={() => (data.state = "")}>
         <RotateCcw class="mr-1 size-4" />
         Undo
       </Button>
@@ -213,7 +212,7 @@
     {#if !isSuccess && isActive}
       <button
         class="absolute top-2 right-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
-        onclick={() => (output.state = "dismissed")}
+        onclick={() => (data.state = "dismissed")}
         title="Skip this question"
       >
         <X class="size-4" />
@@ -233,7 +232,7 @@
         {/if}
         <div class="flex-1">
           <div class="text-base font-semibold text-gray-800">
-            <Markdown value={output.question} />
+            <Markdown value={data.question} />
           </div>
           {#if isSuccess}
             <div class="text-sm text-green-700">Correct!</div>
@@ -247,12 +246,12 @@
     </CardHeader>
 
     <CardContent class="pt-0">
-      {#if (output.hint && !isSuccess) || errorHint}
+      {#if (data.hint && !isSuccess) || errorHint}
         <div
           class="mb-3 flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-2 text-sm text-amber-800"
         >
           <Lightbulb class="mt-0.5 size-4 shrink-0" />
-          <span><Markdown value={errorHint || output.hint || ""} /></span>
+          <span><Markdown value={errorHint || data.hint || ""} /></span>
         </div>
       {/if}
 
@@ -263,7 +262,7 @@
         >
           <Markdown value={successAnswer || ""} />
         </div>
-      {:else if output.type === "text"}
+      {:else if data.type === "text"}
         <!-- Text input -->
         <Textarea
           bind:value={textAnswer}
@@ -275,7 +274,7 @@
       {:else}
         <!-- Choice options -->
         <div class="flex flex-wrap gap-2">
-          {#each output.options || [] as option}
+          {#each data.options || [] as option}
             {@const isSelected = selectedChoices.has(option.value)}
             <button
               class="rounded-md border-2 px-4 py-2 text-left transition-colors
