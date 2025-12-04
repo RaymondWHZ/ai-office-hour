@@ -15,6 +15,6 @@ export const START_OPTIONS: StartOption[] = [
     title: "✍ Dive In and Solve",
     description: "Start answering questions directly",
     prompt:
-      "I'd like to start by trying questions out directly. Please provide a response block after each question with some hint for me to conveniently input my answers.",
+      "I'd like to start by trying questions out directly. Break down complex problems into smaller checkpoints and guide me through solving them.",
   },
 ];

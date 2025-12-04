@@ -7,11 +7,7 @@
   import { Textarea } from "$lib/components/ui/textarea";
   import { START_OPTIONS } from "$lib/constants/startOptions";
   import { Chat } from "@ai-sdk/svelte";
-  import type {
-    TutorMessage,
-    PromptStudentInput,
-    UserDataParts,
-  } from "$lib/tools";
+  import type { TutorMessage, UserDataParts } from "$lib/tools";
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
   import { applyEdits } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
@@ -33,11 +29,6 @@
   }: Props = $props();
 
   let messagesContainer: HTMLDivElement;
-
-  // Track pending prompt tool calls that need output
-  let pendingPromptToolCalls = $state<
-    Map<string, { conversationContext: string }>
-  >(new Map());
 
   const chat = new Chat<TutorMessage>({
     messages,
@@ -78,23 +69,6 @@
           });
         }
       }
-
-      if (toolCall.toolName === "prompt_student") {
-        // Get conversation context from last assistant message
-        const lastAssistantMessage = chat.messages
-          .filter((m) => m.role === "assistant")
-          .pop();
-        const conversationContext =
-          lastAssistantMessage?.parts
-            .filter((p) => p.type === "text" && "text" in p)
-            .map((p) => (p as { type: "text"; text: string }).text)
-            .join("\n") || "";
-
-        // Store the context for later use by the component
-        pendingPromptToolCalls.set(toolCall.toolCallId, {
-          conversationContext,
-        });
-      }
     },
   });
 
@@ -108,16 +82,20 @@
     isGenerating = chat.status === "streaming" || chat.status === "submitted";
   });
 
-  // Derive if there's an active (unanswered, not dismissed) prompt in the last message
+  // Derive if there's an active prompt in the last message
   const hasActivePrompt = $derived.by(() => {
     const lastMessage = chat.messages[chat.messages.length - 1];
     if (!lastMessage || lastMessage.role !== "assistant") return false;
 
     for (const part of lastMessage.parts) {
       if (part.type === "tool-prompt_student") {
-        const output = part.output;
-        // Active if no output yet, or output exists but not success and not dismissed
-        if (!output || (!output.success && !output.dismissed)) {
+        const state = part.output?.state;
+        // Active if prompt exists and not success/dismissed
+        if (
+          state !== undefined &&
+          state !== "success" &&
+          state !== "dismissed"
+        ) {
           return true;
         }
       }
@@ -199,23 +177,9 @@
     sendUserInput(message);
   };
 
-  const handlePromptComplete = (
-    toolCallId: string,
-    output: { success: boolean; answer?: string; dismissed?: boolean },
-    continueMessage?: string,
-  ) => {
-    chat.addToolOutput({
-      tool: "prompt_student",
-      toolCallId,
-      output,
-    });
-
-    if (continueMessage && output.answer) {
-      sendPromptAnswer(output.answer);
-    }
-
-    // Clean up pending context
-    pendingPromptToolCalls.delete(toolCallId);
+  // Called when student answers prompt correctly
+  const handlePromptSuccess = (answer: string) => {
+    sendPromptAnswer(answer);
   };
 
   // Auto-scroll when content changes
@@ -249,7 +213,7 @@
     <div class="flex h-full flex-col items-center justify-center gap-8 px-6">
       <div class="text-center">
         <p class="m-0 mb-2 text-xl font-semibold text-gray-700">
-          Welcome to AI Office Hour
+          Chat with your AI Teaching Assistant
         </p>
         <p class="m-0 text-sm text-gray-500">
           Ask a question or choose a learning style to get started
@@ -263,7 +227,7 @@
           onkeydown={handleStartKeyDown}
           placeholder="Ask a question..."
           disabled={isGenerating}
-          class="min-h-[60px]"
+          class="min-h-20"
         />
         <Button
           onclick={() => {
@@ -278,7 +242,7 @@
 
       <div class="flex items-center gap-4 text-sm text-gray-400">
         <span class="h-px w-12 bg-gray-200"></span>
-        <span>or choose a learning style</span>
+        <span>or choose a preset</span>
         <span class="h-px w-12 bg-gray-200"></span>
       </div>
 
@@ -414,25 +378,28 @@
               </div>
             {/if}
           {:else if part.type === "tool-prompt_student"}
-            {@const toolCallId = part.toolCallId}
-            {@const pendingContext = pendingPromptToolCalls.get(toolCallId)}
             {@const isLastMessage = messageIndex === chat.messages.length - 1}
-            {#if !part.output?.dismissed}
-              <div
-                class="text-xs font-semibold tracking-wide text-indigo-500 uppercase"
-              >
-                You
-              </div>
+            {#if part.state === "input-streaming"}
+              <Card class="flex flex-row items-center gap-3">
+                <Loader />
+                <span class="font-medium">Setting up question...</span>
+              </Card>
+            {:else if part.output}
+              <ChatPromptBlock
+                output={part.output}
+                isActive={isLastMessage && !isGenerating}
+                {isLastMessage}
+                onSuccess={handlePromptSuccess}
+              />
+            {:else}
+              <Card class="flex flex-row items-center gap-3">
+                <div class="flex flex-row items-center gap-3">
+                  <span class="font-medium text-red-600">
+                    Unexpected error: missing prompt data.
+                  </span>
+                </div>
+              </Card>
             {/if}
-            <ChatPromptBlock
-              input={part.input as PromptStudentInput}
-              output={part.output}
-              toolState={part.state}
-              conversationContext={pendingContext?.conversationContext || ""}
-              canUndo={isLastMessage}
-              onComplete={(output, continueMessage) =>
-                handlePromptComplete(toolCallId, output, continueMessage)}
-            />
           {/if}
         {/each}
       </div>
@@ -466,7 +433,7 @@
           onkeydown={handleKeyDown}
           placeholder="Ask a question..."
           disabled={isGenerating}
-          class="min-h-[60px]"
+          class="min-h-20"
         />
         <Button
           onclick={() => {

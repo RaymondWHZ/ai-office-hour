@@ -12,58 +12,52 @@
     LoaderCircle,
     RotateCcw,
   } from "@lucide/svelte";
-  import type { PromptStudentInput, ChoiceOption } from "$lib/tools";
+  import type { PromptStudentInput } from "$lib/tools";
 
-  interface PromptOutput {
-    success: boolean;
-    answer?: string;
-    dismissed?: boolean;
+  type PromptState = "" | "success" | "error" | "dismissed";
+
+  interface PromptOutput extends PromptStudentInput {
+    state: PromptState;
   }
 
   interface Props {
-    input: PromptStudentInput;
-    output?: PromptOutput;
-    toolState?: string;
-    conversationContext: string;
-    canUndo?: boolean;
-    onComplete: (output: PromptOutput, continueMessage?: string) => void;
+    output: PromptOutput;
+    isActive?: boolean;
+    isLastMessage?: boolean;
+    onSuccess: (answer: string) => void;
   }
 
   let {
-    input,
     output,
-    toolState,
-    conversationContext,
-    canUndo = true,
-    onComplete,
+    isActive = false,
+    isLastMessage = false,
+    onSuccess,
   }: Props = $props();
 
   // Local UI state
   let textAnswer = $state("");
   let selectedChoices = $state<Set<string>>(new Set());
-  let localStatus = $state<"pending" | "loading" | "error">("pending");
   let errorHint = $state<string | undefined>(undefined);
+  let successAnswer = $state<string | undefined>(undefined);
+  let submitting = $state(false);
 
-  // Derived states
-  const isCompleted = $derived(output?.success === true);
-  const isDismissed = $derived(output?.dismissed === true);
-  const isStreaming = $derived(toolState === "input-streaming");
-  const isLoading = $derived(localStatus === "loading");
-  const isError = $derived(localStatus === "error");
+  // Derived states from output.state
+  const isSuccess = $derived(output.state === "success");
+  const isError = $derived(output.state === "error");
+  const isDismissed = $derived(output.state === "dismissed");
 
-  // Card styling based on status
+  // Card styling based on state
   const cardClass = $derived.by(() => {
-    if (isCompleted) return "border-green-500 bg-green-50";
-    if (isDismissed) return "border-gray-300 bg-gray-50";
+    if (isSuccess) return "border-green-500 bg-green-50";
     if (isError) return "border-red-400 bg-red-50";
-    if (isLoading) return "border-gray-400 bg-gray-50";
+    if (submitting) return "border-gray-400 bg-gray-50";
     return "border-blue-400 bg-blue-50";
   });
 
   const toggleChoice = (value: string) => {
-    if (isLoading || isCompleted || isDismissed) return;
+    if (submitting || isSuccess) return;
 
-    if (input.type === "single-choice") {
+    if (output.type === "single-choice") {
       selectedChoices = new Set([value]);
     } else {
       const newSet = new Set(selectedChoices);
@@ -77,10 +71,10 @@
   };
 
   const getAnswer = (): string => {
-    if (input.type === "text") {
+    if (output.type === "text") {
       return textAnswer.trim();
     } else {
-      const selectedOptions = input.options?.filter((o) =>
+      const selectedOptions = output.options?.filter((o) =>
         selectedChoices.has(o.value),
       );
       return selectedOptions?.map((o) => o.value).join(", ") || "";
@@ -88,59 +82,110 @@
   };
 
   const canSubmit = $derived.by(() => {
-    if (isLoading || isCompleted || isDismissed) return false;
-    if (input.type === "text") {
+    if (submitting || isSuccess) return false;
+    if (output.type === "text") {
       return textAnswer.trim().length > 0;
     } else {
       return selectedChoices.size > 0;
     }
   });
 
+  // Evaluate choice answers locally using the correct/hint metadata
+  const evaluateChoiceAnswer = (): { success: boolean; hint?: string } => {
+    if (!output.options)
+      return { success: false, hint: "No options available." };
+
+    if (output.type === "single-choice") {
+      if (selectedChoices.size !== 1) {
+        return { success: false, hint: "Please select one option." };
+      }
+
+      const selectedValue = Array.from(selectedChoices)[0];
+      const selectedOption = output.options.find(
+        (option) => option.value === selectedValue,
+      );
+
+      if (selectedOption?.correct) {
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          hint: selectedOption?.hint || "That's not quite right. Try again!",
+        };
+      }
+    } else {
+      for (const option of output.options) {
+        const isSelected = selectedChoices.has(option.value);
+        const shouldBeSelected = option.correct;
+
+        if (isSelected && !shouldBeSelected) {
+          return {
+            success: false,
+            hint: "That's not quite right. Try again!",
+          };
+        } else if (!isSelected && shouldBeSelected) {
+          return {
+            success: false,
+            hint: "That's not quite right. Try again!",
+          };
+        }
+      }
+
+      return { success: true };
+    }
+  };
+
   const handleSubmit = async () => {
     const answer = getAnswer();
     if (!answer) return;
 
-    localStatus = "loading";
+    submitting = true;
     errorHint = undefined;
 
+    // For choice questions, evaluate locally
+    if (output.type !== "text" && output.options) {
+      const result = evaluateChoiceAnswer();
+
+      if (result.success) {
+        output.state = "success";
+        successAnswer = answer;
+        onSuccess(answer);
+      } else {
+        output.state = "error";
+        errorHint = result.hint || "That's not quite right. Try again!";
+      }
+      submitting = false;
+      return;
+    }
+
+    // For text questions, call the review API
     try {
       const response = await fetch("/api/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: input.question,
+          question: output.question,
           answer,
-          conversationContext,
+          correctAnswer: output.correctAnswer,
         }),
       });
 
       const result = await response.json();
 
       if (result.status === "success") {
-        localStatus = "pending";
-        onComplete(
-          { success: true, answer },
-          `[Student answered correctly: ${answer}]\n\nPlease continue with the explanation.`,
-        );
+        output.state = "success";
+        successAnswer = answer;
+        onSuccess(answer);
       } else {
-        localStatus = "error";
+        output.state = "error";
         errorHint = result.hint;
       }
     } catch {
-      localStatus = "error";
+      output.state = "error";
       errorHint = "Failed to review your answer. Please try again.";
+    } finally {
+      submitting = false;
     }
-  };
-
-  const handleDismiss = () => {
-    onComplete({ success: false, dismissed: true });
-  };
-
-  const handleUndoDismiss = () => {
-    // Reset to pending state
-    localStatus = "pending";
-    errorHint = undefined;
-    onComplete({ success: false, dismissed: false });
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -151,16 +196,13 @@
   };
 </script>
 
-{#if isStreaming}
-  <Card class="flex flex-row items-center gap-3">
-    <LoaderCircle class="size-5 animate-spin text-gray-500" />
-    <span class="font-medium">Setting up question...</span>
-  </Card>
-{:else if isDismissed}
-  <Card class="flex flex-row items-center justify-between gap-3 {cardClass}">
+{#if isDismissed}
+  <Card
+    class="flex flex-row items-center justify-between gap-3 border-gray-300 bg-gray-50"
+  >
     <span class="text-sm text-gray-500">Question skipped</span>
-    {#if canUndo}
-      <Button variant="ghost" size="sm" onclick={handleUndoDismiss}>
+    {#if isLastMessage}
+      <Button variant="ghost" size="sm" onclick={() => (output.state = "")}>
         <RotateCcw class="mr-1 size-4" />
         Undo
       </Button>
@@ -168,10 +210,10 @@
   </Card>
 {:else}
   <Card class="relative w-full {cardClass}">
-    {#if !isCompleted}
+    {#if !isSuccess && isActive}
       <button
         class="absolute top-2 right-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
-        onclick={handleDismiss}
+        onclick={() => (output.state = "dismissed")}
         title="Skip this question"
       >
         <X class="size-4" />
@@ -180,9 +222,9 @@
 
     <CardHeader class="pr-10 pb-2">
       <div class="flex items-start gap-2">
-        {#if isCompleted}
+        {#if isSuccess}
           <CircleCheck class="mt-0.5 size-5 shrink-0 text-green-600" />
-        {:else if isLoading}
+        {:else if submitting}
           <LoaderCircle
             class="mt-0.5 size-5 shrink-0 animate-spin text-gray-500"
           />
@@ -191,13 +233,13 @@
         {/if}
         <div class="flex-1">
           <div class="text-base font-semibold text-gray-800">
-            <Markdown value={input.question} />
+            <Markdown value={output.question} />
           </div>
-          {#if isCompleted}
+          {#if isSuccess}
             <div class="text-sm text-green-700">Correct!</div>
           {:else if isError}
             <div class="text-sm text-red-600">Try again</div>
-          {:else if isLoading}
+          {:else if submitting}
             <div class="text-sm text-gray-500">Reviewing...</div>
           {/if}
         </div>
@@ -205,46 +247,46 @@
     </CardHeader>
 
     <CardContent class="pt-0">
-      {#if (input.hint && !isCompleted) || errorHint}
+      {#if (output.hint && !isSuccess) || errorHint}
         <div
           class="mb-3 flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-2 text-sm text-amber-800"
         >
           <Lightbulb class="mt-0.5 size-4 shrink-0" />
-          <span><Markdown value={errorHint || input.hint || ""} /></span>
+          <span><Markdown value={errorHint || output.hint || ""} /></span>
         </div>
       {/if}
 
-      {#if isCompleted}
+      {#if isSuccess}
         <!-- Show the answer that was submitted -->
         <div
           class="rounded border border-green-200 bg-green-50 p-3 text-gray-700"
         >
-          <Markdown value={output?.answer || ""} />
+          <Markdown value={successAnswer || ""} />
         </div>
-      {:else if input.type === "text"}
+      {:else if output.type === "text"}
         <!-- Text input -->
         <Textarea
           bind:value={textAnswer}
           onkeydown={handleKeyDown}
           placeholder="Type your answer..."
-          disabled={isLoading}
-          class="min-h-[80px]"
+          disabled={submitting || !isActive}
+          class="min-h-20"
         />
       {:else}
         <!-- Choice options -->
         <div class="flex flex-wrap gap-2">
-          {#each input.options || [] as option}
+          {#each output.options || [] as option}
             {@const isSelected = selectedChoices.has(option.value)}
             <button
               class="rounded-md border-2 px-4 py-2 text-left transition-colors
                 {isSelected
                 ? 'border-blue-500 bg-blue-100 text-blue-800'
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'}
-                {isLoading
+                {submitting || !isActive
                 ? 'cursor-not-allowed opacity-50'
                 : 'cursor-pointer'}"
               onclick={() => toggleChoice(option.value)}
-              disabled={isLoading}
+              disabled={submitting || !isActive}
             >
               <Markdown value={option.label} />
             </button>
@@ -252,7 +294,7 @@
         </div>
       {/if}
 
-      {#if !isCompleted}
+      {#if !isSuccess && isActive}
         <div class="mt-3 flex justify-end">
           <Button
             variant={isError ? "secondary" : "default"}
@@ -260,7 +302,7 @@
             onclick={handleSubmit}
             disabled={!canSubmit}
           >
-            {#if isLoading}
+            {#if submitting}
               <LoaderCircle class="mr-1 size-4 animate-spin" />
               Checking...
             {:else if isError}

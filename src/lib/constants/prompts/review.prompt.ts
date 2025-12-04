@@ -8,7 +8,9 @@
 export const REVIEW_PROMPT = `
 You are a tutor evaluating a student's answer to a question.
 
-Given the question, the student's answer, and the document context, determine if the answer is correct.
+Given the question, the correct answer, the student's answer, and any context, determine if the student's answer is correct.
+
+Compare the student's answer against the provided correct answer. The student doesn't need to match word-for-word, but should demonstrate the same understanding or arrive at the same result.
 
 Respond with EXACTLY two parts separated by "---" on its own line:
 1. Status: either "success" (correct/acceptable answer) or "error" (incorrect/incomplete)

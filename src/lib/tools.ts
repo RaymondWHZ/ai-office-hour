@@ -77,6 +77,13 @@ export const choiceOptionSchema = z.object({
     .string()
     .describe("The display text for this choice (supports markdown)"),
   value: z.string().describe("The value to submit if this choice is selected"),
+  correct: z.boolean().describe("Whether this option is a correct answer"),
+  hint: z
+    .string()
+    .optional()
+    .describe(
+      "Hint shown if student selects this incorrectly (for wrong answers) or misses it (for correct answers). Explains why this choice is right/wrong.",
+    ),
 });
 
 export type ChoiceOption = z.infer<typeof choiceOptionSchema>;
@@ -95,6 +102,12 @@ export const promptStudentSchema = z.object({
     .optional()
     .describe(
       "Required for choice types. Array of options for the student to choose from.",
+    ),
+  correctAnswer: z
+    .string()
+    .optional()
+    .describe(
+      "Required for text type. The correct answer to compare against (not shown to student, used for evaluation).",
     ),
   hint: z
     .string()
@@ -162,19 +175,14 @@ export const tools = {
     description:
       "Prompt the student to answer a question to check their understanding. Use this to interactively test comprehension during explanations. The student must answer correctly before the conversation can continue. Supports text input or multiple choice questions.",
     inputSchema: promptStudentSchema,
-    outputSchema: z.object({
-      success: z
-        .boolean()
-        .describe("Whether the student has answered correctly"),
-      answer: z
-        .string()
-        .optional()
-        .describe("The student's answer (filled in by the UI)"),
-      dismissed: z
-        .boolean()
-        .optional()
-        .describe("Whether the student dismissed the prompt"),
-    }),
+    execute: async (input) => {
+      // Simply relay the input for the UI component to use
+      // state tracks: "" (pending), "success", "error", "dismissed"
+      return {
+        ...input,
+        state: "" as "" | "success" | "error" | "dismissed",
+      };
+    },
   }),
 };
 

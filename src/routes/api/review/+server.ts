@@ -4,8 +4,13 @@ import type { RequestHandler } from "./$types";
 import { anthropic } from "$lib/ai";
 
 export const POST: RequestHandler = async ({ request }) => {
-  const { question, answer, documentContext, conversationContext } =
-    await request.json();
+  const {
+    question,
+    answer,
+    correctAnswer,
+    documentContext,
+    conversationContext,
+  } = await request.json();
 
   let contextSection = "";
   if (documentContext) {
@@ -14,11 +19,17 @@ export const POST: RequestHandler = async ({ request }) => {
     contextSection = `Conversation Context (tutor's explanation before this question):\n${conversationContext}`;
   }
 
-  const prompt = `Question: ${question}
+  const correctAnswerSection = correctAnswer
+    ? `\nCorrect Answer: ${correctAnswer}`
+    : "";
+
+  const prompt = `Question: ${question}${correctAnswerSection}
 
 Student's Answer: ${answer}
 
 ${contextSection}`;
+
+  console.log("Review Prompt:", prompt);
 
   const result = await generateText({
     model: anthropic("claude-haiku-4-5"),
