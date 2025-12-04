@@ -218,9 +218,10 @@
     pendingPromptToolCalls.delete(toolCallId);
   };
 
-  // Auto-scroll
+  // Auto-scroll when content changes
   $effect(() => {
     void lastPart;
+    void showBottomInput;
     if (messagesContainer) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
@@ -434,31 +435,39 @@
   {#if isGenerating && !lastPart}
     <Loader />
   {/if}
-</div>
 
-{#if showBottomInput}
-  {@const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
-      e.preventDefault();
-      sendUserInput(inputValue);
-      inputValue = "";
-    }
-  }}
-  <div class="flex gap-3 border-t px-12 pt-6 pb-12">
-    <Textarea
-      bind:value={inputValue}
-      onkeydown={handleKeyDown}
-      placeholder="Ask a question..."
-      disabled={isGenerating}
-    />
-    <Button
-      onclick={() => {
+  {#if showBottomInput}
+    {@const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
+        e.preventDefault();
         sendUserInput(inputValue);
         inputValue = "";
-      }}
-      disabled={isGenerating || !inputValue.trim()}
-    >
-      Ask
-    </Button>
-  </div>
-{/if}
+      }
+    }}
+    <div class="flex flex-col gap-2 pb-6">
+      <div
+        class="text-xs font-semibold tracking-wide text-indigo-500 uppercase"
+      >
+        You
+      </div>
+      <div class="flex gap-3">
+        <Textarea
+          bind:value={inputValue}
+          onkeydown={handleKeyDown}
+          placeholder="Ask a question..."
+          disabled={isGenerating}
+          class="min-h-[60px]"
+        />
+        <Button
+          onclick={() => {
+            sendUserInput(inputValue);
+            inputValue = "";
+          }}
+          disabled={isGenerating || !inputValue.trim()}
+        >
+          Ask
+        </Button>
+      </div>
+    </div>
+  {/if}
+</div>
