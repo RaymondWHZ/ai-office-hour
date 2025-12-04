@@ -235,7 +235,7 @@
 </script>
 
 <div
-  class="flex flex-1 flex-col gap-4 overflow-y-auto px-12 py-6"
+  class="flex flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6"
   bind:this={messagesContainer}
 >
   {#if isStartScreen}
@@ -304,7 +304,7 @@
     {@const isHidden = dataType === "prompt-answer"}
 
     {#if !isHidden}
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-6">
         <div
           class="text-xs font-semibold tracking-wide uppercase {message.role ===
           'user'
@@ -316,7 +316,7 @@
 
         {#each message.parts as part}
           {#if part.type === "text" && "text" in part && part.text.trim()}
-            <div class="py-4">
+            <div>
               {#if message.role === "assistant"}
                 <Markdown class="prose max-w-none" value={part.text} />
               {:else if dataType === "user-input"}
@@ -417,6 +417,13 @@
             {@const toolCallId = part.toolCallId}
             {@const pendingContext = pendingPromptToolCalls.get(toolCallId)}
             {@const isLastMessage = messageIndex === chat.messages.length - 1}
+            {#if !part.output?.dismissed}
+              <div
+                class="text-xs font-semibold tracking-wide text-indigo-500 uppercase"
+              >
+                You
+              </div>
+            {/if}
             <ChatPromptBlock
               input={part.input as PromptStudentInput}
               output={part.output}
@@ -444,7 +451,10 @@
         inputValue = "";
       }
     }}
-    <div class="flex flex-col gap-2 pb-6">
+
+    <div
+      class="sticky bottom-0 -mx-12 -mt-6 flex flex-col gap-6 bg-linear-to-b from-white/0 from-0% via-white via-10% to-white px-12 pt-6 pb-12"
+    >
       <div
         class="text-xs font-semibold tracking-wide text-indigo-500 uppercase"
       >
@@ -469,5 +479,7 @@
         </Button>
       </div>
     </div>
+  {:else}
+    <div class="min-h-6"></div>
   {/if}
 </div>
