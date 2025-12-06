@@ -34,7 +34,7 @@
     isGenerating = $bindable(false),
   }: Props = $props();
 
-  let messagesContainer: HTMLDivElement;
+  let messagesContainer = $state() as HTMLDivElement;
 
   const chat = new Chat<TutorMessage>({
     messages,
