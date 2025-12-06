@@ -225,270 +225,274 @@
 </script>
 
 <div
-  class="flex flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6"
+  class="flex h-full flex-col items-center overflow-y-auto px-12"
   bind:this={messagesContainer}
 >
-  {#if isStartScreen}
-    {@const handleStartKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
-        e.preventDefault();
-        sendUserInput(inputValue);
-        inputValue = "";
-      }
-    }}
-    <div class="flex h-full flex-col items-center justify-center gap-8 px-6">
-      <div class="text-center">
-        <p class="m-0 mb-2 text-xl font-semibold text-gray-700">
-          Chat with your AI Teaching Assistant
-        </p>
-        <p class="m-0 text-sm text-gray-500">
-          Ask a question or choose a learning style to get started
-        </p>
-      </div>
-
-      <!-- Input in the middle -->
-      <div class="flex w-full max-w-md gap-3">
-        <Textarea
-          bind:value={inputValue}
-          onkeydown={handleStartKeyDown}
-          placeholder="Ask a question..."
-          disabled={isGenerating}
-          class="min-h-20"
-        />
-        <Button
-          onclick={() => {
-            sendUserInput(inputValue);
-            inputValue = "";
-          }}
-          disabled={isGenerating || !inputValue.trim()}
-        >
-          Ask
-        </Button>
-      </div>
-
-      <div class="flex items-center gap-4 text-sm text-gray-400">
-        <span class="h-px w-12 bg-gray-200"></span>
-        <span>or choose a preset</span>
-        <span class="h-px w-12 bg-gray-200"></span>
-      </div>
-
-      <div class="flex flex-col gap-3 sm:flex-row">
-        {#each START_OPTIONS as option}
-          <Card
-            class="cursor-pointer select-none"
-            onclick={() => sendStartOption(option.title, option.prompt)}
-          >
-            <span class="text-lg font-semibold">{option.title}</span>
-            <span class="text-sm">{option.description}</span>
-          </Card>
-        {/each}
-      </div>
-    </div>
-  {/if}
-
-  {#each chat.messages as message, messageIndex}
-    {@const dataPart = message.parts.find((p) => p.type.startsWith("data-"))}
-    {@const dataType = dataPart?.type.replace("data-", "") as
-      | keyof UserDataParts
-      | undefined}
-    {@const isHidden = dataType === "prompt-answer"}
-
-    {#if !isHidden}
-      <div class="flex flex-col gap-6">
-        <div
-          class="text-xs font-semibold tracking-wide uppercase {message.role ===
-          'user'
-            ? 'text-indigo-500'
-            : 'text-emerald-600'}"
-        >
-          {message.role === "user" ? "You" : "AI Teaching Assistant"}
+  <div class="flex max-w-3xl flex-col gap-6 pt-6">
+    {#if isStartScreen}
+      {@const handleStartKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
+          e.preventDefault();
+          sendUserInput(inputValue);
+          inputValue = "";
+        }
+      }}
+      <div class="flex h-full flex-col items-center justify-center gap-8 px-6">
+        <div class="text-center">
+          <p class="m-0 mb-2 text-xl font-semibold text-gray-700">
+            Chat with your AI Teaching Assistant
+          </p>
+          <p class="m-0 text-sm text-gray-500">
+            Ask a question or choose a learning style to get started
+          </p>
         </div>
 
-        {#each message.parts as part}
-          {#if part.type === "text" && "text" in part && part.text.trim()}
-            <div>
-              {#if message.role === "assistant"}
-                <Markdown class="prose max-w-none" value={part.text} />
-              {:else if dataType === "user-input"}
-                <!-- Regular user input - show as is -->
-                {part.text}
-              {:else if dataType === "start-option" && dataPart && "data" in dataPart}
-                <!-- Start option - show the title -->
-                <span class="text-gray-600">Selected: </span>
-                <span class="font-medium"
-                  >{(dataPart.data as UserDataParts["start-option"])
-                    .title}</span
-                >
-              {:else if dataType === "follow-up-option" && dataPart && "data" in dataPart}
-                <!-- Follow-up option - show the label -->
-                {(dataPart.data as UserDataParts["follow-up-option"]).label}
-              {:else if dataType === "ask-tutor" && dataPart && "data" in dataPart}
-                <!-- Ask tutor - show formatted with context -->
-                {@const data = dataPart.data as UserDataParts["ask-tutor"]}
-                <div class="flex flex-col gap-2">
-                  <div
-                    class="rounded border-l-4 border-blue-300 bg-blue-50 py-2 pr-3 pl-3 text-sm text-gray-600 italic"
-                  >
-                    "{data.selectedText}"
-                  </div>
-                  <div>{data.question}</div>
-                </div>
-              {:else if dataType === "ask-help" && dataPart && "data" in dataPart}
-                <!-- Ask help - show formatted -->
-                {@const data = dataPart.data as UserDataParts["ask-help"]}
-                <div class="flex flex-col gap-2">
-                  <div class="text-sm text-gray-500">
-                    Help requested for: <span class="font-medium text-gray-700"
-                      >{data.question}</span
-                    >
-                  </div>
-                  {#if data.currentAnswer.trim()}
-                    <div class="text-sm">
-                      <span class="text-gray-500">My attempt:</span>
-                      {data.currentAnswer}
-                    </div>
-                  {/if}
-                </div>
-              {:else}
-                <!-- Fallback for messages without data parts -->
-                {part.text}
-              {/if}
-            </div>
-          {:else if part.type === "tool-edit_document"}
-            {#if part.state === "input-streaming"}
-              <Card class="flex flex-row items-center gap-3">
-                <Loader />
-                <span class="font-medium">Editing document...</span>
-              </Card>
-            {:else}
-              {@const result = part.output}
-              <Card class="flex flex-col gap-2">
-                {#if result?.success}
-                  <div class="flex flex-row items-center gap-3">
-                    <SquareCheck />
-                    <span class="font-medium"
-                      >Document updated successfully</span
-                    >
-                  </div>
-                  <p class="m-0 text-sm text-gray-600">{result.summary}</p>
-                {:else}
-                  <div class="flex flex-row items-center gap-3">
-                    <span class="font-medium text-red-600"
-                      >Failed to update document</span
-                    >
-                  </div>
-                  <p class="m-0 text-sm text-gray-600">
-                    {result?.error ?? "No response from edit tool."}
-                  </p>
-                {/if}
-              </Card>
-            {/if}
-          {:else if part.type === "tool-append_document"}
-            {#if part.state === "input-streaming"}
-              <Card class="flex flex-row items-center gap-3">
-                <Loader />
-                <span class="font-medium">Appending to document...</span>
-              </Card>
-            {:else}
-              {@const result = part.output}
-              <Card class="flex flex-col gap-2">
-                <div class="flex flex-row items-center gap-3">
-                  <SquareCheck />
-                  <span class="font-medium">Content appended to document</span>
-                </div>
-                <p class="m-0 text-sm text-gray-600">{result?.summary}</p>
-              </Card>
-            {/if}
-          {:else if part.type === "tool-generate_options"}
-            {@const options = part.output?.options}
-            {@const isLastMessage = messageIndex === chat.messages.length - 1}
+        <!-- Input in the middle -->
+        <div class="flex w-full max-w-md gap-3">
+          <Textarea
+            bind:value={inputValue}
+            onkeydown={handleStartKeyDown}
+            placeholder="Ask a question..."
+            disabled={isGenerating}
+            class="min-h-20"
+          />
+          <Button
+            onclick={() => {
+              sendUserInput(inputValue);
+              inputValue = "";
+            }}
+            disabled={isGenerating || !inputValue.trim()}
+          >
+            Ask
+          </Button>
+        </div>
 
-            {#if part.state === "input-streaming"}
-              <Loader />
-            {:else if options && options.length > 0 && isLastMessage}
-              <div class="flex flex-wrap gap-2">
-                {#each options as option}
-                  <Button
-                    onclick={() =>
-                      sendFollowUpOption(option.label, option.value)}
-                    disabled={isGenerating}
-                    variant="outline"
-                  >
-                    {option.label}
-                  </Button>
-                {/each}
-              </div>
-            {/if}
-          {:else if part.type === "tool-prompt_student"}
-            {@const isLastMessage = messageIndex === chat.messages.length - 1}
-            {#if part.state === "input-streaming" || part.state === "input-available"}
-              <Card class="flex flex-row items-center gap-3">
-                <Loader />
-                <span class="font-medium">Setting up question...</span>
-              </Card>
-            {:else if part.state === "output-available"}
-              <ChatPromptBlock
-                data={part.output}
-                isActive={isLastMessage && !isGenerating}
-                {isLastMessage}
-                onSuccess={handlePromptSuccess}
-              />
-            {:else}
-              <Card class="flex flex-row items-center gap-3">
-                <div class="flex flex-row items-center gap-3">
-                  <span class="font-medium text-red-600">
-                    Error occurred while setting up the question
-                  </span>
-                </div>
-              </Card>
-            {/if}
-          {/if}
-        {/each}
+        <div class="flex items-center gap-4 text-sm text-gray-400">
+          <span class="h-px w-12 bg-gray-200"></span>
+          <span>or choose a preset</span>
+          <span class="h-px w-12 bg-gray-200"></span>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row">
+          {#each START_OPTIONS as option}
+            <Card
+              class="cursor-pointer select-none"
+              onclick={() => sendStartOption(option.title, option.prompt)}
+            >
+              <span class="text-lg font-semibold">{option.title}</span>
+              <span class="text-sm">{option.description}</span>
+            </Card>
+          {/each}
+        </div>
       </div>
     {/if}
-  {/each}
 
-  {#if isGenerating && !lastPart}
-    <Loader />
-  {/if}
+    {#each chat.messages as message, messageIndex}
+      {@const dataPart = message.parts.find((p) => p.type.startsWith("data-"))}
+      {@const dataType = dataPart?.type.replace("data-", "") as
+        | keyof UserDataParts
+        | undefined}
+      {@const isHidden = dataType === "prompt-answer"}
 
-  {#if showBottomInput}
-    {@const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
-        e.preventDefault();
-        sendUserInput(inputValue);
-        inputValue = "";
-      }
-    }}
+      {#if !isHidden}
+        <div class="flex flex-col gap-6">
+          <div
+            class="text-xs font-semibold tracking-wide uppercase {message.role ===
+            'user'
+              ? 'text-indigo-500'
+              : 'text-emerald-600'}"
+          >
+            {message.role === "user" ? "You" : "AI Teaching Assistant"}
+          </div>
 
-    <div
-      class="sticky bottom-0 -mx-12 -mt-6 flex flex-col gap-6 bg-linear-to-b from-white/0 from-0% via-white via-10% to-white px-12 pt-6 pb-12"
-    >
+          {#each message.parts as part}
+            {#if part.type === "text" && "text" in part && part.text.trim()}
+              <div>
+                {#if message.role === "assistant"}
+                  <Markdown class="prose max-w-none" value={part.text} />
+                {:else if dataType === "user-input"}
+                  <!-- Regular user input - show as is -->
+                  {part.text}
+                {:else if dataType === "start-option" && dataPart && "data" in dataPart}
+                  <!-- Start option - show the title -->
+                  <span class="text-gray-600">Selected: </span>
+                  <span class="font-medium"
+                    >{(dataPart.data as UserDataParts["start-option"])
+                      .title}</span
+                  >
+                {:else if dataType === "follow-up-option" && dataPart && "data" in dataPart}
+                  <!-- Follow-up option - show the label -->
+                  {(dataPart.data as UserDataParts["follow-up-option"]).label}
+                {:else if dataType === "ask-tutor" && dataPart && "data" in dataPart}
+                  <!-- Ask tutor - show formatted with context -->
+                  {@const data = dataPart.data as UserDataParts["ask-tutor"]}
+                  <div class="flex flex-col gap-2">
+                    <div
+                      class="rounded border-l-4 border-blue-300 bg-blue-50 py-2 pr-3 pl-3 text-sm text-gray-600 italic"
+                    >
+                      "{data.selectedText}"
+                    </div>
+                    <div>{data.question}</div>
+                  </div>
+                {:else if dataType === "ask-help" && dataPart && "data" in dataPart}
+                  <!-- Ask help - show formatted -->
+                  {@const data = dataPart.data as UserDataParts["ask-help"]}
+                  <div class="flex flex-col gap-2">
+                    <div class="text-sm text-gray-500">
+                      Help requested for: <span
+                        class="font-medium text-gray-700">{data.question}</span
+                      >
+                    </div>
+                    {#if data.currentAnswer.trim()}
+                      <div class="text-sm">
+                        <span class="text-gray-500">My attempt:</span>
+                        {data.currentAnswer}
+                      </div>
+                    {/if}
+                  </div>
+                {:else}
+                  <!-- Fallback for messages without data parts -->
+                  {part.text}
+                {/if}
+              </div>
+            {:else if part.type === "tool-edit_document"}
+              {#if part.state === "input-streaming"}
+                <Card class="flex flex-row items-center gap-3">
+                  <Loader />
+                  <span class="font-medium">Editing document...</span>
+                </Card>
+              {:else}
+                {@const result = part.output}
+                <Card class="flex flex-col gap-2">
+                  {#if result?.success}
+                    <div class="flex flex-row items-center gap-3">
+                      <SquareCheck />
+                      <span class="font-medium"
+                        >Document updated successfully</span
+                      >
+                    </div>
+                    <p class="m-0 text-sm text-gray-600">{result.summary}</p>
+                  {:else}
+                    <div class="flex flex-row items-center gap-3">
+                      <span class="font-medium text-red-600"
+                        >Failed to update document</span
+                      >
+                    </div>
+                    <p class="m-0 text-sm text-gray-600">
+                      {result?.error ?? "No response from edit tool."}
+                    </p>
+                  {/if}
+                </Card>
+              {/if}
+            {:else if part.type === "tool-append_document"}
+              {#if part.state === "input-streaming"}
+                <Card class="flex flex-row items-center gap-3">
+                  <Loader />
+                  <span class="font-medium">Appending to document...</span>
+                </Card>
+              {:else}
+                {@const result = part.output}
+                <Card class="flex flex-col gap-2">
+                  <div class="flex flex-row items-center gap-3">
+                    <SquareCheck />
+                    <span class="font-medium">Content appended to document</span
+                    >
+                  </div>
+                  <p class="m-0 text-sm text-gray-600">{result?.summary}</p>
+                </Card>
+              {/if}
+            {:else if part.type === "tool-generate_options"}
+              {@const options = part.output?.options}
+              {@const isLastMessage = messageIndex === chat.messages.length - 1}
+
+              {#if part.state === "input-streaming"}
+                <Loader />
+              {:else if options && options.length > 0 && isLastMessage}
+                <div class="flex flex-wrap gap-2">
+                  {#each options as option}
+                    <Button
+                      onclick={() =>
+                        sendFollowUpOption(option.label, option.value)}
+                      disabled={isGenerating}
+                      variant="outline"
+                    >
+                      {option.label}
+                    </Button>
+                  {/each}
+                </div>
+              {/if}
+            {:else if part.type === "tool-prompt_student"}
+              {@const isLastMessage = messageIndex === chat.messages.length - 1}
+              {#if part.state === "input-streaming" || part.state === "input-available"}
+                <Card class="flex flex-row items-center gap-3">
+                  <Loader />
+                  <span class="font-medium">Setting up question...</span>
+                </Card>
+              {:else if part.state === "output-available"}
+                <ChatPromptBlock
+                  data={part.output}
+                  isActive={isLastMessage && !isGenerating}
+                  {isLastMessage}
+                  onSuccess={handlePromptSuccess}
+                />
+              {:else}
+                <Card class="flex flex-row items-center gap-3">
+                  <div class="flex flex-row items-center gap-3">
+                    <span class="font-medium text-red-600">
+                      Error occurred while setting up the question
+                    </span>
+                  </div>
+                </Card>
+              {/if}
+            {/if}
+          {/each}
+        </div>
+      {/if}
+    {/each}
+
+    {#if isGenerating && !lastPart}
+      <Loader />
+    {/if}
+
+    {#if showBottomInput}
+      {@const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
+          e.preventDefault();
+          sendUserInput(inputValue);
+          inputValue = "";
+        }
+      }}
+
       <div
-        class="text-xs font-semibold tracking-wide text-indigo-500 uppercase"
+        class="sticky bottom-0 -mx-12 -mt-6 flex flex-col gap-6 bg-linear-to-b from-white/0 from-0% via-white via-10% to-white px-12 pt-6 pb-12"
       >
-        You
-      </div>
-      <div class="flex gap-3">
-        <Textarea
-          bind:value={inputValue}
-          onkeydown={handleKeyDown}
-          placeholder="Ask a question..."
-          disabled={isGenerating}
-          class="min-h-20"
-        />
-        <Button
-          onclick={() => {
-            sendUserInput(inputValue);
-            inputValue = "";
-          }}
-          disabled={isGenerating || !inputValue.trim()}
+        <div
+          class="text-xs font-semibold tracking-wide text-indigo-500 uppercase"
         >
-          Ask
-        </Button>
+          You
+        </div>
+        <div class="flex gap-3">
+          <Textarea
+            bind:value={inputValue}
+            onkeydown={handleKeyDown}
+            placeholder="Ask a question..."
+            disabled={isGenerating}
+            class="min-h-20"
+            autofocus
+          />
+          <Button
+            onclick={() => {
+              sendUserInput(inputValue);
+              inputValue = "";
+            }}
+            disabled={isGenerating || !inputValue.trim()}
+          >
+            Ask
+          </Button>
+        </div>
       </div>
-    </div>
-  {:else}
-    <div class="min-h-6"></div>
-  {/if}
+    {:else}
+      <div class="min-h-6"></div>
+    {/if}
+  </div>
 </div>
