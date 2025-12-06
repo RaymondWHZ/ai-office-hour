@@ -1,31 +1,40 @@
-import type { EditOperation } from "$lib/tools";
-
 /**
- * Applies a series of edit operations to document content using search-replace.
+ * Applies a single edit operation to document content using search-replace.
  *
  * Strategy:
  * - Single match: Replace directly
- * - No match: Skip with warning
- * - Multiple matches: Replace first occurrence with warning
+ * - No match: Throw error
+ * - Multiple matches: Replace first occurrence
  *
  * @param content - The original document content
- * @param edits - Array of search-replace operations
+ * @param search - The text to find
+ * @param replace - The text to replace with
  * @returns Updated document content
  */
-export function applyEdits(content: string, edits: EditOperation[]): string {
-  let updatedContent = content;
-
-  for (const edit of edits) {
-    const { search, replace } = edit;
-
-    if (!updatedContent.includes(search)) {
-      // No match found - skip this edit
-      throw new Error(`Search text not found; no edits made: ${search}`);
-    }
-
-    // Replace the first occurrence
-    updatedContent = updatedContent.replace(search, replace);
+export const applyEdit = (
+  content: string,
+  search: string,
+  replace: string,
+): string => {
+  if (!content.includes(search)) {
+    throw new Error(`Search text not found: "${search}"`);
   }
 
-  return updatedContent;
-}
+  // Replace the first occurrence
+  return content.replace(search, replace);
+};
+
+/**
+ * Appends content to the end of the document.
+ * This operation always succeeds.
+ *
+ * @param content - The original document content
+ * @param appendContent - The content to append
+ * @returns Updated document content
+ */
+export const appendToDocument = (
+  content: string,
+  appendContent: string,
+): string => {
+  return content + appendContent;
+};

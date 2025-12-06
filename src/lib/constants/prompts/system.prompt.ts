@@ -31,14 +31,24 @@ Document Format Specifications
 
 export const TOOL_EDIT_DOCUMENT = `
 TOOL USAGE - edit_document:
-- Call this tool to make edits to the document, follow the "Document Format Specifications"
-- Edit is done by replacing specific text segments with new content
-- Each edit must have a "search" string to locate the text and a "replace" string with the new content
-- You need to include a summary for the edits your are going to make
-- Include 3-5 words of context before and after the target text
-- If the text appears multiple times, include unique context
+- Call this tool to make a single edit to the document, follow the "Document Format Specifications"
+- Edit is done by replacing a specific text segment with new content
+- Provide "search" string to locate the text and "replace" string with the new content
+- Include a summary explaining why you're making this edit
+- Include 3-5 words of context before and after the target text to ensure unique matching
+- If the text appears multiple times, include more unique context
 - Preserve original formatting (spacing, capitalization, line breaks)
+- For multiple edits, call this tool multiple times (one edit per call)
 - If you don't need to edit the document, don't call this tool`;
+
+export const TOOL_APPEND_DOCUMENT = `
+TOOL USAGE - append_document:
+- Call this tool to append content to the end of the document
+- Use this as a FALLBACK when edit_document fails repeatedly (e.g., search text not found)
+- Also use when you simply need to add new content at the end of the document
+- This operation always succeeds
+- Provide "content" with the HTML to append (follow Document Format Specifications)
+- Include a summary explaining why you're appending this content`;
 
 export const TOOL_GENERATE_OPTIONS = `
 TOOL USAGE - generate_options:

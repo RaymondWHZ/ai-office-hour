@@ -127,17 +127,20 @@ export interface PromptData extends PromptStudentInput {
 export const tools = {
   edit_document: tool({
     description:
-      "Apply edits to the student's document. Call this at an appropriate point during the conversation, like a TA would write while explaining. You can start with brief explanation, then edit the document, then continue explaining.",
+      "Apply a single edit to the student's document. Call this at an appropriate point during the conversation, like a TA would write while explaining. You can start with brief explanation, then edit the document, then continue explaining. For multiple edits, call this tool multiple times.",
     inputSchema: z.object({
-      edits: z
-        .array(editOperationSchema)
+      search: z
+        .string()
         .describe(
-          "Array of search-replace operations. Each edit should include enough context (3-5 words before and after) to uniquely identify the text to replace.",
+          "The text to find and replace. Include enough context (3-5 words before and after) to uniquely identify the text.",
         ),
+      replace: z
+        .string()
+        .describe("The new text to replace the search text with."),
       summary: z
         .string()
         .describe(
-          "Brief explanation of why you're making these edits (for logging/debugging)",
+          "Brief explanation of why you're making this edit (for logging/debugging)",
         ),
     }),
     outputSchema: z.union([
@@ -158,6 +161,31 @@ export const tools = {
           .describe("Error message if success is false."),
       }),
     ]),
+  }),
+  append_document: tool({
+    description:
+      "Append content to the end of the student's document. Use this as a fallback when edit_document fails repeatedly, or when you simply need to add new content at the end. This operation always succeeds.",
+    inputSchema: z.object({
+      content: z
+        .string()
+        .describe(
+          "The HTML content to append to the document. Follow the Document Format Specifications.",
+        ),
+      summary: z
+        .string()
+        .describe(
+          "Brief explanation of why you're appending this content (for logging/debugging)",
+        ),
+    }),
+    outputSchema: z.object({
+      success: z.literal(true),
+      summary: z
+        .string()
+        .optional()
+        .describe(
+          "Copy of your input summary for confirmation/logging purposes.",
+        ),
+    }),
   }),
   generate_options: tool({
     description:

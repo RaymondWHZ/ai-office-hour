@@ -9,7 +9,7 @@
   import { Chat } from "@ai-sdk/svelte";
   import type { TutorMessage, UserDataParts } from "$lib/tools";
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
-  import { applyEdits } from "$lib/documentEditor";
+  import { applyEdit, appendToDocument } from "$lib/documentEditor";
   import { SquareCheck } from "@lucide/svelte";
   import { getSelectedModel } from "$lib/stores/modelStore.svelte";
   import ChatPromptBlock from "./ChatPromptBlock.svelte";
@@ -63,9 +63,9 @@
       if (toolCall.dynamic) return;
 
       if (toolCall.toolName === "edit_document") {
-        const { edits, summary } = toolCall.input;
+        const { search, replace, summary } = toolCall.input;
         try {
-          documentContent = applyEdits(documentContent, edits);
+          documentContent = applyEdit(documentContent, search, replace);
           chat.addToolOutput({
             tool: "edit_document",
             toolCallId: toolCall.toolCallId,
@@ -80,10 +80,20 @@
               error:
                 editError instanceof Error
                   ? editError.message
-                  : "Failed to apply edits.",
+                  : "Failed to apply edit.",
             },
           });
         }
+      }
+
+      if (toolCall.toolName === "append_document") {
+        const { content, summary } = toolCall.input;
+        documentContent = appendToDocument(documentContent, content);
+        chat.addToolOutput({
+          tool: "append_document",
+          toolCallId: toolCall.toolCallId,
+          output: { success: true, summary },
+        });
       }
     },
   });
@@ -371,6 +381,22 @@
                     {result?.error ?? "No response from edit tool."}
                   </p>
                 {/if}
+              </Card>
+            {/if}
+          {:else if part.type === "tool-append_document"}
+            {#if part.state === "input-streaming"}
+              <Card class="flex flex-row items-center gap-3">
+                <Loader />
+                <span class="font-medium">Appending to document...</span>
+              </Card>
+            {:else}
+              {@const result = part.output}
+              <Card class="flex flex-col gap-2">
+                <div class="flex flex-row items-center gap-3">
+                  <SquareCheck />
+                  <span class="font-medium">Content appended to document</span>
+                </div>
+                <p class="m-0 text-sm text-gray-600">{result?.summary}</p>
               </Card>
             {/if}
           {:else if part.type === "tool-generate_options"}
