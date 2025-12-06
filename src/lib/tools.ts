@@ -93,9 +93,9 @@ export const promptStudentSchema = z.object({
     .string()
     .describe("The question or prompt to display (supports markdown)"),
   type: z
-    .enum(["text", "single-choice", "multiple-choice"])
+    .enum(["text", "single-choice"])
     .describe(
-      "The type of response expected: 'text' for free-form input, 'single-choice' for selecting one option, 'multiple-choice' for selecting multiple options",
+      "The type of response expected: 'text' for free-form input, 'single-choice' for selecting one option",
     ),
   options: z
     .array(choiceOptionSchema)
@@ -181,6 +181,7 @@ export const tools = {
       return {
         ...input,
         state: "" as "" | "success" | "error" | "dismissed",
+        answer: "",
       };
     },
   }),

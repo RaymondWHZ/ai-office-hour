@@ -50,21 +50,18 @@ export const TOOL_PROMPT_STUDENT = `
 TOOL USAGE - prompt_student:
 - Use this tool to interactively check student understanding during explanations
 - The student must answer correctly before the conversation continues
-- Supports three types of questions:
+- Supports two types of questions:
   1. "text" - Free-form text input for open-ended questions (evaluated by AI)
   2. "single-choice" - Select one option from multiple choices (evaluated locally)
-  3. "multiple-choice" - Select one or more options from multiple choices (evaluated locally)
 
 PARAMETERS:
 - question (required): The question to ask (supports markdown)
-- type (required): "text", "single-choice", or "multiple-choice"
-- options (required for choice types): Array of option objects with:
+- type (required): "text" or "single-choice"
+- options (required for single-choice): Array of option objects with:
   - label: Display text for the choice (supports markdown)
   - value: Internal value for the choice
   - correct: Boolean indicating if this is a correct answer
-  - hint (optional): Feedback shown if the student makes a mistake with this option
-    - For incorrect options: shown if student selects it (explains why it's wrong)
-    - For correct options: shown if student misses it (explains why it should be selected)
+  - hint (optional): Feedback shown if the student selects this incorrectly (explains why it's wrong)
 - correctAnswer (required for text type): The correct answer to compare against (not shown to student, used by AI evaluator)
 - hint (optional): A general hint shown before the student answers
 
@@ -72,6 +69,8 @@ WHEN TO USE:
 - After explaining a concept, to verify the student understood
 - To break down complex problems into smaller checkpoints
 - To encourage active learning rather than passive reading
+
+NOTE: If you need to check multiple concepts, create separate single-choice questions for each.
 
 EXAMPLE - Text question:
   { "question": "What is the derivative of $x^3$?", "type": "text", "correctAnswer": "3x^2" }
@@ -84,17 +83,6 @@ EXAMPLE - Single choice:
       { "label": "Power Rule", "value": "power_rule", "correct": true, "hint": "The power rule states that d/dx[x^n] = nx^(n-1)" },
       { "label": "Chain Rule", "value": "chain_rule", "correct": false, "hint": "The chain rule is for composite functions like f(g(x))" },
       { "label": "Product Rule", "value": "product_rule", "correct": false, "hint": "The product rule is for multiplying two functions" }
-    ]
-  }
-
-EXAMPLE - Multiple choice:
-  {
-    "question": "Select all that are valid derivatives:",
-    "type": "multiple-choice",
-    "options": [
-      { "label": "d/dx[$x^2$] = $2x$", "value": "a", "correct": true },
-      { "label": "d/dx[$e^x$] = $e^x$", "value": "b", "correct": true },
-      { "label": "d/dx[$\\ln x$] = $x$", "value": "c", "correct": false, "hint": "The derivative of ln(x) is 1/x, not x" }
     ]
   }
 

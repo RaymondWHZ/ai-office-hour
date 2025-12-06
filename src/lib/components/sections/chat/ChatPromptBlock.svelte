@@ -18,6 +18,7 @@
 
   interface PromptOutput extends PromptStudentInput {
     state: PromptState;
+    answer: string; // Student's answer (text input or selected option's label)
   }
 
   interface Props {
@@ -36,9 +37,8 @@
 
   // Local UI state
   let textAnswer = $state("");
-  let selectedChoices = $state<Set<string>>(new Set());
+  let selectedChoice = $state<string | null>(null);
   let errorHint = $state<string | undefined>(undefined);
-  let successAnswer = $state<string | undefined>(undefined);
   let submitting = $state(false);
 
   // Derived states from output.state
@@ -56,28 +56,18 @@
 
   const toggleChoice = (value: string) => {
     if (submitting || isSuccess) return;
-
-    if (data.type === "single-choice") {
-      selectedChoices = new Set([value]);
-    } else {
-      const newSet = new Set(selectedChoices);
-      if (newSet.has(value)) {
-        newSet.delete(value);
-      } else {
-        newSet.add(value);
-      }
-      selectedChoices = newSet;
-    }
+    selectedChoice = value;
   };
 
+  // Get the answer string (for text: the text, for single-choice: the label)
   const getAnswer = (): string => {
     if (data.type === "text") {
       return textAnswer.trim();
     } else {
-      const selectedOptions = data.options?.filter((o) =>
-        selectedChoices.has(o.value),
+      const selectedOption = data.options?.find(
+        (o) => o.value === selectedChoice,
       );
-      return selectedOptions?.map((o) => o.value).join(", ") || "";
+      return selectedOption?.label || selectedChoice || "";
     }
   };
 
@@ -86,51 +76,29 @@
     if (data.type === "text") {
       return textAnswer.trim().length > 0;
     } else {
-      return selectedChoices.size > 0;
+      return selectedChoice !== null;
     }
   });
 
-  // Evaluate choice answers locally using the correct/hint metadata
+  // Evaluate single-choice answers locally using the correct/hint metadata
   const evaluateChoiceAnswer = (): { success: boolean; hint?: string } => {
     if (!data.options) return { success: false, hint: "No options available." };
 
-    if (data.type === "single-choice") {
-      if (selectedChoices.size !== 1) {
-        return { success: false, hint: "Please select one option." };
-      }
+    if (!selectedChoice) {
+      return { success: false, hint: "Please select an option." };
+    }
 
-      const selectedValue = Array.from(selectedChoices)[0];
-      const selectedOption = data.options.find(
-        (option) => option.value === selectedValue,
-      );
+    const selectedOption = data.options.find(
+      (option) => option.value === selectedChoice,
+    );
 
-      if (selectedOption?.correct) {
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          hint: selectedOption?.hint || "That's not quite right. Try again!",
-        };
-      }
-    } else {
-      for (const option of data.options) {
-        const isSelected = selectedChoices.has(option.value);
-        const shouldBeSelected = option.correct;
-
-        if (isSelected && !shouldBeSelected) {
-          return {
-            success: false,
-            hint: "That's not quite right. Try again!",
-          };
-        } else if (!isSelected && shouldBeSelected) {
-          return {
-            success: false,
-            hint: "That's not quite right. Try again!",
-          };
-        }
-      }
-
+    if (selectedOption?.correct) {
       return { success: true };
+    } else {
+      return {
+        success: false,
+        hint: selectedOption?.hint || "That's not quite right. Try again!",
+      };
     }
   };
 
@@ -147,7 +115,7 @@
 
       if (result.success) {
         data.state = "success";
-        successAnswer = answer;
+        data.answer = answer;
         onSuccess(answer);
       } else {
         data.state = "error";
@@ -173,7 +141,7 @@
 
       if (result.status === "success") {
         data.state = "success";
-        successAnswer = answer;
+        data.answer = answer;
         onSuccess(answer);
       } else {
         data.state = "error";
@@ -260,7 +228,7 @@
         <div
           class="rounded border border-green-200 bg-green-50 p-3 text-gray-700"
         >
-          <Markdown value={successAnswer || ""} />
+          <Markdown value={data.answer} />
         </div>
       {:else if data.type === "text"}
         <!-- Text input -->
@@ -274,8 +242,8 @@
       {:else}
         <!-- Choice options -->
         <div class="flex flex-wrap gap-2">
-          {#each data.options || [] as option}
-            {@const isSelected = selectedChoices.has(option.value)}
+          {#each data.options || [] as option (option.value)}
+            {@const isSelected = selectedChoice === option.value}
             <button
               class="rounded-md border-2 px-4 py-2 text-left transition-colors
                 {isSelected

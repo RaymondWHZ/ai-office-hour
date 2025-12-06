@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import Markdown from "$lib/components/renderers/Markdown.svelte";
   import { Button } from "$lib/components/ui/button";
   import { Card } from "$lib/components/ui/card";
@@ -13,6 +13,12 @@
   import { SquareCheck } from "@lucide/svelte";
   import { getSelectedModel } from "$lib/stores/modelStore.svelte";
   import ChatPromptBlock from "./ChatPromptBlock.svelte";
+
+  const getLastPart = (messages: TutorMessage[]) => {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.role !== "assistant") return undefined;
+    return lastMessage.parts[lastMessage.parts.length - 1];
+  };
 
   interface Props {
     documentContent?: string;
@@ -34,11 +40,21 @@
     messages,
 
     sendAutomaticallyWhen: ({ messages }) => {
-      const lastMessage = messages[messages.length - 1];
-      if (!lastMessage || lastMessage.role !== "assistant") return false;
-      const lastPart = lastMessage.parts[lastMessage.parts.length - 1];
-      if (lastPart.type === "tool-generate_options") return false;
-      if (lastPart.type === "tool-prompt_student") return false;
+      const lastPart = getLastPart(messages);
+      if (lastPart) {
+        if (
+          lastPart.type === "tool-generate_options" &&
+          lastPart.state === "output-available"
+        ) {
+          return false;
+        }
+        if (
+          lastPart.type === "tool-prompt_student" &&
+          lastPart.state === "output-available"
+        ) {
+          return false;
+        }
+      }
 
       return lastAssistantMessageIsCompleteWithToolCalls({ messages });
     },
@@ -113,7 +129,7 @@
 
   const lastPart = $derived.by(() => {
     const lastMessage = chat.messages[chat.messages.length - 1];
-    if (!lastMessage || lastMessage.role !== "assistant") return null;
+    if (!lastMessage || lastMessage.role !== "assistant") return undefined;
     return lastMessage.parts[lastMessage.parts.length - 1];
   });
 
@@ -379,12 +395,12 @@
             {/if}
           {:else if part.type === "tool-prompt_student"}
             {@const isLastMessage = messageIndex === chat.messages.length - 1}
-            {#if part.state === "input-streaming"}
+            {#if part.state === "input-streaming" || part.state === "input-available"}
               <Card class="flex flex-row items-center gap-3">
                 <Loader />
                 <span class="font-medium">Setting up question...</span>
               </Card>
-            {:else if part.output}
+            {:else if part.state === "output-available"}
               <ChatPromptBlock
                 data={part.output}
                 isActive={isLastMessage && !isGenerating}
@@ -395,7 +411,7 @@
               <Card class="flex flex-row items-center gap-3">
                 <div class="flex flex-row items-center gap-3">
                   <span class="font-medium text-red-600">
-                    Unexpected error: missing prompt data.
+                    Error occurred while setting up the question
                   </span>
                 </div>
               </Card>
