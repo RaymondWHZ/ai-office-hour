@@ -29,8 +29,6 @@ Student's Answer: ${answer}
 
 ${contextSection}`;
 
-  console.log("Review Prompt:", prompt);
-
   const result = await generateText({
     model: anthropic("claude-haiku-4-5"),
     system: REVIEW_PROMPT,
