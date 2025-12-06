@@ -2,7 +2,7 @@
   import { NodeViewContent, NodeViewWrapper } from "svelte-tiptap";
   import { Card } from "$lib/components/ui/card";
 
-  let {} = $props();
+  let _ = $props();
 </script>
 
 <NodeViewWrapper>

@@ -3,8 +3,8 @@
   import { Card } from "$lib/components/ui/card";
   import type { TutorMessage } from "$lib/tools";
   import ChatPanel from "../chat/ChatPanel.svelte";
-  import ChatInput from "../chat/ChatInput.svelte";
-  import { responseState } from "$lib/components/sections/document/extensions";
+  import * as Resizable from "$lib/components/ui/resizable/index.js";
+  import { askHelpState } from "$lib/components/sections/document/extensions";
 
   interface Props {
     documentContent: string;
@@ -25,51 +25,44 @@
 
   // Handle "Ask Tutor" from DocumentEditor
   const handleAskTutor = (selectedText: string, question: string) => {
-    const formattedMessage = `Regarding: "${selectedText}"\n\nQuestion: ${question}`;
-    chatPanel?.submitMessage(formattedMessage);
+    chatPanel?.sendAskTutor(selectedText, question);
   };
 
-  // Handle response block submissions
+  // Handle "Ask for Help" from response blocks
   $effect(() => {
-    const submission = responseState.pendingSubmission;
-    if (submission) {
-      let formattedMessage = "[Student Responsed]\n\n";
-      if (submission.question) {
-        formattedMessage += `Question: ${submission.question}\n\n`;
-      }
-      formattedMessage += `Answer: ${submission.answer}`;
-
-      chatPanel?.submitMessage(formattedMessage);
-      responseState.pendingSubmission = undefined;
+    const pending = askHelpState.pending;
+    if (pending) {
+      chatPanel?.sendAskHelp(pending.question, pending.currentAnswer);
+      askHelpState.pending = undefined;
     }
   });
 </script>
 
-<div class="mx-auto w-full flex-1 overflow-hidden">
-  <div class="flex h-full overflow-hidden">
-    <div
-      class="flex flex-1 flex-col items-center overflow-hidden p-6 md:col-span-3"
-    >
-      <Card class="h-full w-full max-w-7xl overflow-hidden p-0">
-        <DocumentEditor
-          bind:value={documentContent}
-          onAskTutor={handleAskTutor}
-        />
-      </Card>
-    </div>
+<div class="h-full w-full overflow-hidden">
+  <Resizable.PaneGroup direction="horizontal">
+    <Resizable.Pane defaultSize={65} minSize={30}>
+      <div class="flex h-full flex-col items-center overflow-hidden p-6">
+        <Card class="h-full w-full max-w-7xl overflow-hidden p-0">
+          <DocumentEditor
+            bind:value={documentContent}
+            onAskTutor={handleAskTutor}
+          />
+        </Card>
+      </div>
+    </Resizable.Pane>
 
-    <div class="flex w-lg flex-col overflow-hidden border-l xl:w-xl 2xl:w-3xl">
-      <ChatPanel
-        bind:this={chatPanel}
-        bind:documentContent
-        bind:messages
-        bind:isGenerating
-      />
-      <ChatInput
-        bind:value={inputValue}
-        disabled={isGenerating}
-        onSubmit={chatPanel.submitMessage}
-      />
-    </div>
-  </div>
+    <Resizable.Handle />
+
+    <Resizable.Pane defaultSize={35} minSize={20}>
+      <div class="flex h-full flex-col overflow-hidden">
+        <ChatPanel
+          bind:this={chatPanel}
+          bind:documentContent
+          bind:messages
+          bind:inputValue
+          bind:isGenerating
+        />
+      </div>
+    </Resizable.Pane>
+  </Resizable.PaneGroup>
 </div>

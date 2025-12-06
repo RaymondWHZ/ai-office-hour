@@ -32,11 +32,13 @@ TipTap editor with custom node extensions in `extensions/` folder:
 Two patterns used:
 
 1. **SvelteNodeViewRenderer** (CardNode, ResponseNode) - For complex UI
+
    ```typescript
    addNodeView() {
      return SvelteNodeViewRenderer(MyNodeView);
    }
    ```
+
    Use `NodeViewWrapper` and `NodeViewContent` in the Svelte component.
 
 2. **Manual DOM** (CommentNode, LatexNode) - For simple nodes with external popups
@@ -53,6 +55,7 @@ Two patterns used:
 #### State Bridges for Extensions
 
 Extensions communicate with other components via reactive state stores:
+
 - `commentState` in `comment/comment.svelte.ts`
 - `latexState` in `latex/latex.svelte.ts`
 - `responseState` in `response/response.svelte.ts`
@@ -105,11 +108,13 @@ Interactive answer blocks for students:
 **HTML Format**: `<response question="..." hint="...">content</response>`
 
 **Attributes**:
+
 - `question` - Required, identifies the block
 - `hint` - Optional guidance text
 - `status` - Managed automatically: `""`, `"loading"`, `"success"`, `"error"`
 
 **Workflow**:
+
 1. Tutor inserts response block via `edit_document`
 2. Student writes answer, clicks "Submit for Review"
 3. Block enters `loading` state, message sent to tutor

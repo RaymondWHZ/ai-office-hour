@@ -14,4 +14,5 @@ export const FONT_OPTIONS: FontOption[] = [
   },
 ];
 
-export const getFontStyle = (value: string) => (value ? `font-family: ${value}` : "");
+export const getFontStyle = (value: string) =>
+  value ? `font-family: ${value}` : "";
