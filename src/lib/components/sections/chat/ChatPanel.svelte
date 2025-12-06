@@ -10,7 +10,7 @@
   import type { TutorMessage, UserDataParts } from "$lib/tools";
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
   import { applyEdit, appendToDocument } from "$lib/documentEditor";
-  import { Check, SquareCheck } from "@lucide/svelte";
+  import { SquareCheck } from "@lucide/svelte";
   import { getSelectedModel } from "$lib/stores/modelStore.svelte";
   import ChatPromptBlock from "./ChatPromptBlock.svelte";
 
