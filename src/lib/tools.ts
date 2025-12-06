@@ -117,6 +117,13 @@ export const promptStudentSchema = z.object({
 
 export type PromptStudentInput = z.infer<typeof promptStudentSchema>;
 
+export type PromptState = "" | "success" | "error" | "dismissed";
+
+export interface PromptData extends PromptStudentInput {
+  state: PromptState;
+  answer: string; // Student's answer (text input or selected option's label)
+}
+
 export const tools = {
   edit_document: tool({
     description:
@@ -175,12 +182,12 @@ export const tools = {
     description:
       "Prompt the student to answer a question to check their understanding. Use this to interactively test comprehension during explanations. The student must answer correctly before the conversation can continue. Supports text input or multiple choice questions.",
     inputSchema: promptStudentSchema,
-    execute: async (input) => {
+    execute: async (input): Promise<PromptData> => {
       // Simply relay the input for the UI component to use
       // state tracks: "" (pending), "success", "error", "dismissed"
       return {
         ...input,
-        state: "" as "" | "success" | "error" | "dismissed",
+        state: "",
         answer: "",
       };
     },

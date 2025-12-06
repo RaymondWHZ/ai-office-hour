@@ -12,17 +12,10 @@
     LoaderCircle,
     RotateCcw,
   } from "@lucide/svelte";
-  import type { PromptStudentInput } from "$lib/tools";
-
-  type PromptState = "" | "success" | "error" | "dismissed";
-
-  interface PromptOutput extends PromptStudentInput {
-    state: PromptState;
-    answer: string; // Student's answer (text input or selected option's label)
-  }
+  import type { PromptData } from "$lib/tools";
 
   interface Props {
-    data: PromptOutput;
+    data: PromptData;
     isActive?: boolean;
     isLastMessage?: boolean;
     onSuccess: (answer: string) => void;
@@ -36,8 +29,6 @@
   }: Props = $props();
 
   // Local UI state
-  let textAnswer = $state("");
-  let selectedChoice = $state<string | null>(null);
   let errorHint = $state<string | undefined>(undefined);
   let submitting = $state(false);
 
@@ -54,42 +45,38 @@
     return "border-blue-400 bg-blue-50";
   });
 
-  const toggleChoice = (value: string) => {
+  // For single-choice, data.answer stores the value (for selection tracking)
+  // We convert to label for display on success
+  const selectChoice = (value: string) => {
     if (submitting || isSuccess) return;
-    selectedChoice = value;
+    data.answer = value;
   };
 
-  // Get the answer string (for text: the text, for single-choice: the label)
-  const getAnswer = (): string => {
+  // Get the display answer (for single-choice: convert value to label)
+  const getDisplayAnswer = (): string => {
     if (data.type === "text") {
-      return textAnswer.trim();
+      return data.answer;
     } else {
-      const selectedOption = data.options?.find(
-        (o) => o.value === selectedChoice,
-      );
-      return selectedOption?.label || selectedChoice || "";
+      const selectedOption = data.options?.find((o) => o.value === data.answer);
+      return selectedOption?.label || data.answer;
     }
   };
 
   const canSubmit = $derived.by(() => {
     if (submitting || isSuccess) return false;
-    if (data.type === "text") {
-      return textAnswer.trim().length > 0;
-    } else {
-      return selectedChoice !== null;
-    }
+    return data.answer.trim().length > 0;
   });
 
   // Evaluate single-choice answers locally using the correct/hint metadata
   const evaluateChoiceAnswer = (): { success: boolean; hint?: string } => {
     if (!data.options) return { success: false, hint: "No options available." };
 
-    if (!selectedChoice) {
+    if (!data.answer) {
       return { success: false, hint: "Please select an option." };
     }
 
     const selectedOption = data.options.find(
-      (option) => option.value === selectedChoice,
+      (option) => option.value === data.answer,
     );
 
     if (selectedOption?.correct) {
@@ -103,7 +90,7 @@
   };
 
   const handleSubmit = async () => {
-    const answer = getAnswer();
+    const answer = data.answer.trim();
     if (!answer) return;
 
     submitting = true;
@@ -115,8 +102,7 @@
 
       if (result.success) {
         data.state = "success";
-        data.answer = answer;
-        onSuccess(answer);
+        onSuccess(getDisplayAnswer());
       } else {
         data.state = "error";
         errorHint = result.hint || "That's not quite right. Try again!";
@@ -141,7 +127,6 @@
 
       if (result.status === "success") {
         data.state = "success";
-        data.answer = answer;
         onSuccess(answer);
       } else {
         data.state = "error";
@@ -228,12 +213,12 @@
         <div
           class="rounded border border-green-200 bg-green-50 p-3 text-gray-700"
         >
-          <Markdown value={data.answer} />
+          <Markdown value={getDisplayAnswer()} />
         </div>
       {:else if data.type === "text"}
         <!-- Text input -->
         <Textarea
-          bind:value={textAnswer}
+          bind:value={data.answer}
           onkeydown={handleKeyDown}
           placeholder="Type your answer..."
           disabled={submitting || !isActive}
@@ -243,7 +228,7 @@
         <!-- Choice options -->
         <div class="flex flex-wrap gap-2">
           {#each data.options || [] as option (option.value)}
-            {@const isSelected = selectedChoice === option.value}
+            {@const isSelected = data.answer === option.value}
             <button
               class="rounded-md border-2 px-4 py-2 text-left transition-colors
                 {isSelected
@@ -252,7 +237,7 @@
                 {submitting || !isActive
                 ? 'cursor-not-allowed opacity-50'
                 : 'cursor-pointer'}"
-              onclick={() => toggleChoice(option.value)}
+              onclick={() => selectChoice(option.value)}
               disabled={submitting || !isActive}
             >
               <Markdown value={option.label} />
