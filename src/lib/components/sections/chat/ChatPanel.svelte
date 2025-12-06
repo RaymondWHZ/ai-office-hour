@@ -10,7 +10,7 @@
   import type { TutorMessage, UserDataParts } from "$lib/tools";
   import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
   import { applyEdit, appendToDocument } from "$lib/documentEditor";
-  import { SquareCheck } from "@lucide/svelte";
+  import { Check, SquareCheck } from "@lucide/svelte";
   import { getSelectedModel } from "$lib/stores/modelStore.svelte";
   import ChatPromptBlock from "./ChatPromptBlock.svelte";
 
@@ -224,11 +224,27 @@
   });
 </script>
 
+{#snippet role_tag(role: "user" | "assistant" | "system")}
+  {#if role === "system"}
+    <div class="text-xs font-semibold tracking-wide text-gray-400 uppercase">
+      System
+    </div>
+  {:else if role === "user"}
+    <div class="text-xs font-semibold tracking-wide text-indigo-500 uppercase">
+      You
+    </div>
+  {:else if role === "assistant"}
+    <div class="text-xs font-semibold tracking-wide text-emerald-600 uppercase">
+      AI Teaching Assistant
+    </div>
+  {/if}
+{/snippet}
+
 <div
   class="flex h-full flex-col items-center overflow-y-auto px-12"
   bind:this={messagesContainer}
 >
-  <div class="flex max-w-3xl flex-col gap-6 pt-6">
+  <div class="flex w-full max-w-3xl flex-1 flex-col gap-6 pt-6">
     {#if isStartScreen}
       {@const handleStartKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey && inputValue.trim()) {
@@ -296,14 +312,7 @@
 
       {#if !isHidden}
         <div class="flex flex-col gap-6">
-          <div
-            class="text-xs font-semibold tracking-wide uppercase {message.role ===
-            'user'
-              ? 'text-indigo-500'
-              : 'text-emerald-600'}"
-          >
-            {message.role === "user" ? "You" : "AI Teaching Assistant"}
-          </div>
+          {@render role_tag(message.role)}
 
           {#each message.parts as part}
             {#if part.type === "text" && "text" in part && part.text.trim()}
@@ -316,13 +325,15 @@
                 {:else if dataType === "start-option" && dataPart && "data" in dataPart}
                   <!-- Start option - show the title -->
                   <span class="text-gray-600">Selected: </span>
-                  <span class="font-medium"
-                    >{(dataPart.data as UserDataParts["start-option"])
-                      .title}</span
-                  >
+                  <span class="font-medium">
+                    {(dataPart.data as UserDataParts["start-option"]).title}
+                  </span>
                 {:else if dataType === "follow-up-option" && dataPart && "data" in dataPart}
                   <!-- Follow-up option - show the label -->
-                  {(dataPart.data as UserDataParts["follow-up-option"]).label}
+                  <span class="text-gray-600">Selected: </span>
+                  <span class="font-medium">
+                    {(dataPart.data as UserDataParts["follow-up-option"]).label}
+                  </span>
                 {:else if dataType === "ask-tutor" && dataPart && "data" in dataPart}
                   <!-- Ask tutor - show formatted with context -->
                   {@const data = dataPart.data as UserDataParts["ask-tutor"]}
@@ -367,16 +378,16 @@
                   {#if result?.success}
                     <div class="flex flex-row items-center gap-3">
                       <SquareCheck />
-                      <span class="font-medium"
-                        >Document updated successfully</span
-                      >
+                      <span class="font-medium">
+                        Document updated successfully
+                      </span>
                     </div>
                     <p class="m-0 text-sm text-gray-600">{result.summary}</p>
                   {:else}
                     <div class="flex flex-row items-center gap-3">
-                      <span class="font-medium text-red-600"
-                        >Failed to update document</span
-                      >
+                      <span class="font-medium text-red-600">
+                        Failed to update document
+                      </span>
                     </div>
                     <p class="m-0 text-sm text-gray-600">
                       {result?.error ?? "No response from edit tool."}
@@ -395,31 +406,16 @@
                 <Card class="flex flex-col gap-2">
                   <div class="flex flex-row items-center gap-3">
                     <SquareCheck />
-                    <span class="font-medium">Content appended to document</span
-                    >
+                    <span class="font-medium">
+                      Content appended to document
+                    </span>
                   </div>
                   <p class="m-0 text-sm text-gray-600">{result?.summary}</p>
                 </Card>
               {/if}
             {:else if part.type === "tool-generate_options"}
-              {@const options = part.output?.options}
-              {@const isLastMessage = messageIndex === chat.messages.length - 1}
-
               {#if part.state === "input-streaming"}
                 <Loader />
-              {:else if options && options.length > 0 && isLastMessage}
-                <div class="flex flex-wrap gap-2">
-                  {#each options as option}
-                    <Button
-                      onclick={() =>
-                        sendFollowUpOption(option.label, option.value)}
-                      disabled={isGenerating}
-                      variant="outline"
-                    >
-                      {option.label}
-                    </Button>
-                  {/each}
-                </div>
               {/if}
             {:else if part.type === "tool-prompt_student"}
               {@const isLastMessage = messageIndex === chat.messages.length - 1}
@@ -466,11 +462,21 @@
       <div
         class="sticky bottom-0 -mx-12 -mt-6 flex flex-col gap-6 bg-linear-to-b from-white/0 from-0% via-white via-10% to-white px-12 pt-6 pb-12"
       >
-        <div
-          class="text-xs font-semibold tracking-wide text-indigo-500 uppercase"
-        >
-          You
-        </div>
+        {@render role_tag("user")}
+        {#if lastPart?.type === "tool-generate_options" && lastPart.state === "output-available"}
+          {@const options = lastPart.output.options}
+          <div class="-mb-2 flex flex-wrap gap-2">
+            {#each options as option}
+              <Button
+                onclick={() => sendFollowUpOption(option.label, option.value)}
+                disabled={isGenerating}
+                variant="outline"
+              >
+                {option.label}
+              </Button>
+            {/each}
+          </div>
+        {/if}
         <div class="flex gap-3">
           <Textarea
             bind:value={inputValue}
