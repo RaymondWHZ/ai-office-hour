@@ -7,14 +7,14 @@
     base: "flex gap-1",
     variants: {
       variant: {
-        default: "[&>div]:bg-primary [&>div]:border-border",
-        secondary: "[&>div]:bg-black [&>div]:border-border",
-        outline: "[&>div]:bg-transparent [&>div]:border-border",
+        default: "[&>div]:bg-primary",
+        secondary: "[&>div]:bg-secondary-foreground",
+        muted: "[&>div]:bg-muted-foreground",
       },
       size: {
-        sm: "[&>div]:w-2 [&>div]:h-2",
-        md: "[&>div]:w-3 [&>div]:h-3",
-        lg: "[&>div]:w-4 [&>div]:h-4",
+        sm: "[&>div]:size-1.5",
+        md: "[&>div]:size-2",
+        lg: "[&>div]:size-3",
       },
     },
     defaultVariants: {
@@ -30,9 +30,9 @@
   > & {
     variant?: LoaderVariant;
     size?: LoaderSize;
-    count?: number; // number of bouncing dots
-    duration?: number; // animation duration in seconds
-    delayStep?: number; // delay in ms
+    count?: number;
+    duration?: number;
+    delayStep?: number;
   };
 </script>
 
@@ -59,7 +59,7 @@
 >
   {#each Array.from({ length: count }) as _, i}
     <div
-      class="animate-bounce border-2"
+      class="animate-bounce rounded-full"
       style="animation-duration: {duration}s; animation-iteration-count: infinite; animation-delay: {i *
         delayStep}ms;"
     ></div>

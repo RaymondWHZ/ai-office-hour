@@ -4,6 +4,7 @@
     HTMLInputTypeAttribute,
   } from "svelte/elements";
   import { cn, type WithElementRef } from "$lib/utils.js";
+
   type InputType = Exclude<HTMLInputTypeAttribute, "file">;
   type Props = WithElementRef<
     Omit<HTMLInputAttributes, "type"> &
@@ -12,6 +13,7 @@
         | { type?: InputType; files?: undefined }
       )
   >;
+
   let {
     ref = $bindable(null),
     value = $bindable(),
@@ -27,9 +29,9 @@
     bind:this={ref}
     data-slot="input"
     class={cn(
-      "dark:bg-input/30 flex h-9 w-full min-w-0 border-2 bg-transparent px-4 py-2 pt-1.5 text-sm font-medium shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-      // "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-      "aria-invalid:border-destructive aria-invalid:shadow-xs aria-invalid:shadow-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
+      "flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+      "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+      "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
       className,
     )}
     type="file"
@@ -42,9 +44,9 @@
     bind:this={ref}
     data-slot="input"
     class={cn(
-      "flex h-9 w-full min-w-0 border-2 bg-background px-4 py-2 text-base shadow-md transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus:shadow-xs focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-      // "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-      "aria-invalid:border-destructive aria-invalid:shadow-xs aria-invalid:shadow-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
+      "flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+      "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+      "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
       className,
     )}
     {type}
