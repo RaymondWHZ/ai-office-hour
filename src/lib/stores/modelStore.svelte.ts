@@ -1,9 +1,9 @@
-export type ModelType = "claude-haiku-4-5" | "gpt-4o-mini";
+export type ModelType = "claude-haiku-4-5" | "gpt-4o-mini" | "deepseek-chat";
 
 export interface ModelConfig {
   id: ModelType;
   label: string;
-  provider: "anthropic" | "openai";
+  provider: "anthropic" | "openai" | "deepseek";
 }
 
 export const AVAILABLE_MODELS: ModelConfig[] = [
@@ -16,6 +16,11 @@ export const AVAILABLE_MODELS: ModelConfig[] = [
     id: "gpt-4o-mini",
     label: "GPT-4o Mini",
     provider: "openai",
+  },
+  {
+    id: "deepseek-chat",
+    label: "DeepSeek Chat",
+    provider: "deepseek",
   },
 ];
 

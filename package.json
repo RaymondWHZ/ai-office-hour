@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@ai-sdk/anthropic": "^2.0.42",
+    "@ai-sdk/deepseek": "^1.0.32",
     "@ai-sdk/openai": "^2.0.68",
     "@ai-sdk/svelte": "^3.0.89",
     "@lucide/svelte": "^0.544.0",
