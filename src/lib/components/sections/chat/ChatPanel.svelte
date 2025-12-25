@@ -292,11 +292,13 @@
         <div class="flex flex-col gap-3 sm:flex-row">
           {#each START_OPTIONS as option}
             <Card
-              class="cursor-pointer select-none"
+              class="cursor-pointer transition-colors select-none hover:bg-accent"
               onclick={() => sendStartOption(option.title, option.prompt)}
             >
-              <span class="text-lg font-semibold">{option.title}</span>
-              <span class="text-sm">{option.description}</span>
+              <span class="text-base font-semibold">{option.title}</span>
+              <span class="text-sm text-muted-foreground">
+                {option.description}
+              </span>
             </Card>
           {/each}
         </div>
@@ -368,28 +370,30 @@
               </div>
             {:else if part.type === "tool-edit_document"}
               {#if part.state === "input-streaming"}
-                <Card class="flex flex-row items-center gap-3">
+                <Card class="flex flex-row items-center gap-3 bg-muted/50">
                   <Loader />
-                  <span class="font-medium">Editing document...</span>
+                  <span class="text-sm font-medium">Editing document...</span>
                 </Card>
               {:else}
                 {@const result = part.output}
-                <Card class="flex flex-col gap-2">
+                <Card class="bg-muted/50">
                   {#if result?.success}
-                    <div class="flex flex-row items-center gap-3">
-                      <SquareCheck />
-                      <span class="font-medium">
+                    <div class="flex flex-row items-center gap-2">
+                      <SquareCheck class="size-4 text-emerald-600" />
+                      <span class="text-sm font-medium">
                         Document updated successfully
                       </span>
                     </div>
-                    <p class="m-0 text-sm text-gray-600">{result.summary}</p>
+                    <p class="m-0 text-sm text-muted-foreground">
+                      {result.summary}
+                    </p>
                   {:else}
-                    <div class="flex flex-row items-center gap-3">
-                      <span class="font-medium text-red-600">
+                    <div class="flex flex-row items-center gap-2">
+                      <span class="text-sm font-medium text-destructive">
                         Failed to update document
                       </span>
                     </div>
-                    <p class="m-0 text-sm text-gray-600">
+                    <p class="m-0 text-sm text-muted-foreground">
                       {result?.error ?? "No response from edit tool."}
                     </p>
                   {/if}
@@ -397,20 +401,24 @@
               {/if}
             {:else if part.type === "tool-append_document"}
               {#if part.state === "input-streaming"}
-                <Card class="flex flex-row items-center gap-3">
+                <Card class="flex flex-row items-center gap-3 bg-muted/50">
                   <Loader />
-                  <span class="font-medium">Appending to document...</span>
+                  <span class="text-sm font-medium">
+                    Appending to document...
+                  </span>
                 </Card>
               {:else}
                 {@const result = part.output}
-                <Card class="flex flex-col gap-2">
-                  <div class="flex flex-row items-center gap-3">
-                    <SquareCheck />
-                    <span class="font-medium">
+                <Card class="bg-muted/50">
+                  <div class="flex flex-row items-center gap-2">
+                    <SquareCheck class="size-4 text-emerald-600" />
+                    <span class="text-sm font-medium">
                       Content appended to document
                     </span>
                   </div>
-                  <p class="m-0 text-sm text-gray-600">{result?.summary}</p>
+                  <p class="m-0 text-sm text-muted-foreground">
+                    {result?.summary}
+                  </p>
                 </Card>
               {/if}
             {:else if part.type === "tool-generate_options"}
@@ -420,9 +428,10 @@
             {:else if part.type === "tool-prompt_student"}
               {@const isLastMessage = messageIndex === chat.messages.length - 1}
               {#if part.state === "input-streaming" || part.state === "input-available"}
-                <Card class="flex flex-row items-center gap-3">
+                <Card class="flex flex-row items-center gap-3 bg-muted/50">
                   <Loader />
-                  <span class="font-medium">Setting up question...</span>
+                  <span class="text-sm font-medium">Setting up question...</span
+                  >
                 </Card>
               {:else if part.state === "output-available"}
                 <ChatPromptBlock
@@ -432,12 +441,10 @@
                   onSuccess={handlePromptSuccess}
                 />
               {:else}
-                <Card class="flex flex-row items-center gap-3">
-                  <div class="flex flex-row items-center gap-3">
-                    <span class="font-medium text-red-600">
-                      Error occurred while setting up the question
-                    </span>
-                  </div>
+                <Card class="flex flex-row items-center gap-3 bg-muted/50">
+                  <span class="text-sm font-medium text-destructive">
+                    Error occurred while setting up the question
+                  </span>
                 </Card>
               {/if}
             {/if}

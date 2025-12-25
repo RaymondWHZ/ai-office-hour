@@ -28,7 +28,11 @@
     ResponseNode,
   } from "./extensions";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-  import { FONT_OPTIONS, getFontStyle } from "$lib/constants/fonts";
+  import {
+    FONT_OPTIONS,
+    getFontStyle,
+    getDisplayFontStyle,
+  } from "$lib/constants/fonts";
 
   let selectedFont = $state("");
 
@@ -220,7 +224,7 @@
           {#snippet child({ props })}
             <button
               class="px-1.5 hover:bg-accent"
-              style={getFontStyle(currentFontOption.value)}
+              style={getDisplayFontStyle(currentFontOption)}
               {...props}
             >
               {currentFontOption.label}
@@ -232,7 +236,7 @@
             {#each FONT_OPTIONS as font}
               <DropdownMenu.RadioItem
                 value={font.value}
-                style={getFontStyle(font.value)}
+                style={getDisplayFontStyle(font)}
                 >{font.label}</DropdownMenu.RadioItem
               >
             {/each}
