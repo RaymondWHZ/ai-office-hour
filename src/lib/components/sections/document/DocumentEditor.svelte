@@ -3,9 +3,11 @@
   import { StarterKit } from "@tiptap/starter-kit";
   import AskTutorPopup from "./AskTutorPopup.svelte";
   import {
+    CircleHelp,
     Code,
     List,
     ListOrdered,
+    LoaderCircle,
     MessageSquareHeart,
     SeparatorHorizontal,
     TextQuote,
@@ -21,7 +23,6 @@
   import {
     CardNode,
     CommentNode,
-    CommentPopup,
     LatexNode,
     LatexPopup,
     ResponseNode,
@@ -83,6 +84,41 @@
     const selectedText = $editor.state.doc.textBetween(from, to);
     askTutorPopup.open(askTutorButton, selectedText);
   };
+
+  let isExplaining = $state(false);
+
+  const handleWhatsThisClick = async () => {
+    const { from, to } = $editor.state.selection;
+    const selectedText = $editor.state.doc.textBetween(from, to);
+
+    if (!selectedText.trim()) return;
+
+    isExplaining = true;
+
+    try {
+      const response = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedText }),
+      });
+
+      const { title, explanation } = await response.json();
+
+      // Replace selection with comment node wrapping the selected text
+      $editor
+        .chain()
+        .focus()
+        .deleteRange({ from, to })
+        .insertContentAt(from, {
+          type: "comment",
+          attrs: { comment: explanation, title },
+          content: [{ type: "text", text: selectedText }],
+        })
+        .run();
+    } finally {
+      isExplaining = false;
+    }
+  };
 </script>
 
 <svelte:head>
@@ -97,16 +133,15 @@
   {/if}
 </svelte:head>
 
-<CommentPopup />
 <LatexPopup />
 
 <AskTutorPopup bind:this={askTutorPopup} onSubmit={onAskTutor} />
 
-<div class="relative flex h-full flex-col overflow-auto">
+<div class="@container relative flex h-full flex-col overflow-y-auto">
   <!-- Block menu -->
   {#if $editor}
     <div
-      class="sticky top-0 z-10 flex items-center gap-1 bg-linear-to-b from-white via-white via-80% to-transparent px-32 pt-8 pb-12"
+      class="sticky top-0 z-10 flex items-center gap-1 bg-linear-to-b from-white via-white via-80% to-transparent px-12 pt-8 pb-12 @min-[48rem]:px-32"
     >
       {#snippet toolbarButton(
         Title: string | Component,
@@ -246,6 +281,19 @@
         <span class="mx-1 text-gray-300">|</span>
 
         <button
+          class="flex items-center gap-1 px-2 outline-none hover:bg-accent disabled:opacity-50"
+          onclick={handleWhatsThisClick}
+          disabled={isExplaining}
+        >
+          {#if isExplaining}
+            <LoaderCircle class="size-4 animate-spin" />
+          {:else}
+            <CircleHelp class="size-4" />
+          {/if}
+          What's this?
+        </button>
+
+        <button
           bind:this={askTutorButton}
           class="flex items-center gap-1 px-2 outline-none hover:bg-accent"
           onclick={handleAskTutorClick}
@@ -258,9 +306,9 @@
 
   <!-- Actual document -->
   <div
-    class="flex-1 px-32 pb-6"
+    class="flex-1 px-12 pb-6 @min-[48rem]:px-32"
     style={selectedFont ? `font-family: ${selectedFont}` : ""}
   >
-    <EditorContent editor={$editor} />
+    <EditorContent class="h-full" editor={$editor} />
   </div>
 </div>

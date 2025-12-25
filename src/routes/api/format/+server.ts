@@ -18,6 +18,7 @@ ${DOCUMENT_FORMAT}
 Additional instruction:
 
 - Do not use comments or cards in any case in your output
+- Add a response block to each question that might need a response; make sure to add hide-question="true"
 
 Format the following pdf extracted text into a well-structured document:
 

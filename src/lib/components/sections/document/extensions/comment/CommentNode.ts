@@ -1,19 +1,26 @@
 import { Node, mergeAttributes } from "@tiptap/core";
-import { commentState } from "./comment.svelte";
+import { SvelteNodeViewRenderer } from "svelte-tiptap";
+import CommentNodeView from "./CommentNodeView.svelte";
 
 const CommentNode = Node.create({
   name: "comment",
   group: "inline",
   inline: true,
   content: "inline*",
+
   addAttributes() {
     return {
       comment: {
         default: "",
         parseHTML: (element) => element.getAttribute("data"),
       },
+      title: {
+        default: undefined,
+        parseHTML: (element) => element.getAttribute("data-title"),
+      },
     };
   },
+
   parseHTML() {
     return [
       {
@@ -21,39 +28,19 @@ const CommentNode = Node.create({
       },
     ];
   },
+
   renderHTML({ HTMLAttributes, node }) {
-    return [
-      "comment",
-      mergeAttributes(HTMLAttributes, {
-        data: node.attrs.comment,
-      }),
-      0,
-    ];
-  },
-  addNodeView() {
-    return ({ node }) => {
-      const dom = document.createElement("span");
-      dom.setAttribute("class", "bg-accent");
-      let mouseOutTimer: number | undefined;
-      dom.addEventListener("mouseover", () => {
-        clearTimeout(mouseOutTimer);
-        commentState.dom = dom;
-        commentState.comment = node.attrs.comment;
-      });
-      dom.addEventListener("mouseout", () => {
-        mouseOutTimer = window.setTimeout(() => {
-          commentState.dom = undefined;
-        }, 100);
-      });
-
-      const contentDOM = document.createElement("span");
-      dom.append(contentDOM);
-
-      return {
-        dom,
-        contentDOM,
-      };
+    const attrs: Record<string, string> = {
+      data: node.attrs.comment,
     };
+    if (node.attrs.title) {
+      attrs["data-title"] = node.attrs.title;
+    }
+    return ["comment", mergeAttributes(HTMLAttributes, attrs), 0];
+  },
+
+  addNodeView() {
+    return SvelteNodeViewRenderer(CommentNodeView);
   },
 });
 

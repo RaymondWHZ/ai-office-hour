@@ -24,21 +24,31 @@ Document Format Specifications
 - Output nothing else but the html string; no code block surrounding it
 - Only h1, h2, h3, p, ul, ol, li, code blocks are used; don't use other HTML tags
 - Use <latex data="mathematical expression"/> to add equations
-- Use <comment data="comment">words</comment> to add inline comments to words; $$ inline latex math syntax is supported in data attribute
+- Use <comment data="comment" data-title="optional title">words</comment> to add inline comments to words; data-title shows as a header in the popup; $$ inline latex math syntax is supported in data attribute
 - Use <card>...</card> to wrap blocks of content that should be visually distinguished (like explanations, hints, etc.)
 - Use <response question="...">...</response> to create interactive answer blocks for students (hint attribute optional)
 - Remember this is a HTML format; no markdown syntax in the document (except in comment data attribute)`;
 
 export const TOOL_EDIT_DOCUMENT = `
 TOOL USAGE - edit_document:
-- Call this tool to make edits to the document, follow the "Document Format Specifications"
-- Edit is done by replacing specific text segments with new content
-- Each edit must have a "search" string to locate the text and a "replace" string with the new content
-- You need to include a summary for the edits your are going to make
-- Include 3-5 words of context before and after the target text
-- If the text appears multiple times, include unique context
+- Call this tool to make a single edit to the document, follow the "Document Format Specifications"
+- Edit is done by replacing a specific text segment with new content
+- Provide "search" string to locate the text and "replace" string with the new content
+- Include a summary explaining why you're making this edit
+- Include 3-5 words of context before and after the target text to ensure unique matching
+- If the text appears multiple times, include more unique context
 - Preserve original formatting (spacing, capitalization, line breaks)
+- For multiple edits, call this tool multiple times (one edit per call)
 - If you don't need to edit the document, don't call this tool`;
+
+export const TOOL_APPEND_DOCUMENT = `
+TOOL USAGE - append_document:
+- Call this tool to append content to the end of the document
+- Use this as a FALLBACK when edit_document fails repeatedly (e.g., search text not found)
+- Also use when you simply need to add new content at the end of the document
+- This operation always succeeds
+- Provide "content" with the HTML to append (follow Document Format Specifications)
+- Include a summary explaining why you're appending this content`;
 
 export const TOOL_GENERATE_OPTIONS = `
 TOOL USAGE - generate_options:
@@ -46,39 +56,62 @@ TOOL USAGE - generate_options:
 - Each option should have a clear "label" (button text, 2-5 words) and "value" (the full prompt that will be sent)
 - Whenever you call the tool, the conversation will end`;
 
+export const TOOL_PROMPT_STUDENT = `
+TOOL USAGE - prompt_student:
+- Use this tool to interactively check student understanding during explanations
+- The student must answer correctly before the conversation continues
+- Supports two types of questions:
+  1. "text" - Free-form text input for open-ended questions (evaluated by AI)
+  2. "single-choice" - Select one option from multiple choices (evaluated locally)
+
+PARAMETERS:
+- question (required): The question to ask (supports markdown)
+- type (required): "text" or "single-choice"
+- options (required for single-choice): Array of option objects with:
+  - label: Display text for the choice (supports markdown)
+  - value: Internal value for the choice
+  - correct: Boolean indicating if this is a correct answer
+  - hint (optional): Feedback shown if the student selects this incorrectly (explains why it's wrong)
+- correctAnswer (required for text type): The correct answer to compare against (not shown to student, used by AI evaluator)
+- hint (optional): A general hint shown before the student answers
+
+WHEN TO USE:
+- After explaining a concept, to verify the student understood
+- To break down complex problems into smaller checkpoints
+- To encourage active learning rather than passive reading
+
+NOTE: If you need to check multiple concepts, create separate single-choice questions for each.
+
+EXAMPLE - Text question:
+  { "question": "What is the derivative of $x^3$?", "type": "text", "correctAnswer": "3x^2" }
+
+EXAMPLE - Single choice:
+  {
+    "question": "Which rule applies when differentiating $x^n$?",
+    "type": "single-choice",
+    "options": [
+      { "label": "Power Rule", "value": "power_rule", "correct": true, "hint": "The power rule states that d/dx[x^n] = nx^(n-1)" },
+      { "label": "Chain Rule", "value": "chain_rule", "correct": false, "hint": "The chain rule is for composite functions like f(g(x))" },
+      { "label": "Product Rule", "value": "product_rule", "correct": false, "hint": "The product rule is for multiplying two functions" }
+    ]
+  }
+
+After the student answers correctly, you will receive a message indicating their answer and should continue with the explanation.
+`;
+
 export const RESPONSE_BLOCK_USAGE = `
 More details on response block usage:
 - Use <response> tags to create interactive blocks where students can write their answers
 - Full syntax: <response question="..." hint="...">content</response>
+- You may optionally include "hide-question" attribute set to "true" to hide the question, when the question description repeats information already present in the document
 
 ATTRIBUTES:
-- question (required): The question or prompt to display as a header - also used to identify the block
+- question (required): The question or prompt to display as a header
 - hint (optional): A helpful hint displayed above the answer area to guide the student
 
-VISUAL STATES (managed automatically):
-- Default: Blue border - student can write and submit
-- Loading: Gray border with spinner - submitted, awaiting your review
-- Success: Green border with checkmark - correct answer, editing disabled
-- Error: Red border with X - incorrect, student can revise and resubmit
-
-WORKFLOW:
-1. Insert response block with question and optional hint using edit_document
-2. Student writes answer and clicks "Submit for Review"
-3. The block automatically enters "loading" state
-4. You receive their answer as a chat message labeled "[Student Response]"
-5. You MUST IMMEDIATELY call the update_response tool FIRST, before any text response; do not output anything before calling the tool!
-6. After the tool call, provide your explanation or feedback
+Student responses are automatically reviewed by the system - you do not need to handle response submissions.
 
 EXAMPLE - Creating a response block:
   <response question="What is the derivative of x^2?"><p></p></response>
   <response question="Solve for x" hint="Try moving all x terms to one side"><p></p></response>
-
-EXAMPLE - After receiving "[Student Response]", call update_response tool:
-  { "question": "What is the derivative of x^2?", "status": "success" }
-  { "question": "Solve for x", "status": "error", "hint": "Remember to isolate x on one side" }
-
-CRITICAL - When you receive a "[Student Response]" message:
-1. FIRST: Call update_response tool immediately to update the block status
-2. THEN: Provide your explanation, feedback, or next steps
-Never output any text before calling update_response. The student's UI is blocked until you call this tool.
 `;
