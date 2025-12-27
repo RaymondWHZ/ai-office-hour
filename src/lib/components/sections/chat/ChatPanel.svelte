@@ -373,13 +373,13 @@
               </div>
             {:else if part.type === "tool-edit_document"}
               {#if part.state === "input-streaming"}
-                <Card class="flex flex-row items-center gap-3 bg-muted/50">
+                <Card class="flex flex-row items-center gap-3 bg-muted/50 px-6">
                   <Loader />
                   <span class="text-sm font-medium">Editing document...</span>
                 </Card>
               {:else}
                 {@const result = part.output}
-                <Card class="bg-muted/50">
+                <Card class="flex flex-col gap-3 bg-muted/50 px-6">
                   {#if result?.success}
                     <div class="flex flex-row items-center gap-2">
                       <SquareCheck class="text-success size-4" />
@@ -404,7 +404,7 @@
               {/if}
             {:else if part.type === "tool-append_document"}
               {#if part.state === "input-streaming"}
-                <Card class="flex flex-row items-center gap-3 bg-muted/50">
+                <Card class="flex flex-row items-center gap-3 bg-muted/50 px-6">
                   <Loader />
                   <span class="text-sm font-medium">
                     Appending to document...
@@ -412,7 +412,7 @@
                 </Card>
               {:else}
                 {@const result = part.output}
-                <Card class="bg-muted/50">
+                <Card class="flex flex-col gap-3 bg-muted/50 px-6">
                   <div class="flex flex-row items-center gap-2">
                     <SquareCheck class="text-success size-4" />
                     <span class="text-sm font-medium">
@@ -431,7 +431,7 @@
             {:else if part.type === "tool-prompt_student"}
               {@const isLastMessage = messageIndex === chat.messages.length - 1}
               {#if part.state === "input-streaming" || part.state === "input-available"}
-                <Card class="flex flex-row items-center gap-3 bg-muted/50">
+                <Card class="flex flex-row items-center gap-1 bg-muted/50 px-6">
                   <Loader />
                   <span class="text-sm font-medium">Setting up question...</span
                   >
@@ -444,7 +444,7 @@
                   onSuccess={handlePromptSuccess}
                 />
               {:else}
-                <Card class="flex flex-row items-center gap-3 bg-muted/50">
+                <Card class="flex flex-row items-center gap-3 bg-muted/50 px-6">
                   <span class="text-sm font-medium text-destructive">
                     Error occurred while setting up the question
                   </span>
