@@ -175,7 +175,7 @@
     <CardHeader class="pr-10 pb-2">
       <div class="flex items-start gap-2">
         {#if isSuccess}
-          <CircleCheck class="mt-0.5 size-5 shrink-0 text-success" />
+          <CircleCheck class="text-success mt-0.5 size-5 shrink-0" />
         {:else if submitting}
           <LoaderCircle
             class="mt-0.5 size-5 shrink-0 animate-spin text-muted-foreground"
@@ -188,7 +188,7 @@
             <Markdown value={data.question} />
           </div>
           {#if isSuccess}
-            <div class="text-sm text-success">Correct!</div>
+            <div class="text-success text-sm">Correct!</div>
           {:else if isError}
             <div class="text-sm text-destructive">Try again</div>
           {:else if submitting}
@@ -201,7 +201,7 @@
     <CardContent class="pt-0">
       {#if (data.hint && !isSuccess) || errorHint}
         <div
-          class="mb-3 flex items-start gap-2 rounded border border-warning bg-warning/10 p-2 text-sm text-warning-foreground"
+          class="border-warning bg-warning/10 text-warning-foreground mb-3 flex items-start gap-2 rounded border p-2 text-sm"
         >
           <Lightbulb class="mt-0.5 size-4 shrink-0" />
           <span><Markdown value={errorHint || data.hint || ""} /></span>
@@ -210,7 +210,7 @@
 
       {#if isSuccess}
         <!-- Show the answer that was submitted -->
-        <div class="rounded border border-success bg-success/10 p-3">
+        <div class="border-success bg-success/10 rounded border p-3">
           <Markdown value={getDisplayAnswer()} />
         </div>
       {:else if data.type === "text"}

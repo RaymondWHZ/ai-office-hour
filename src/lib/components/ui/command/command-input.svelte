@@ -12,7 +12,7 @@
 </script>
 
 <div
-  class="flex h-9 items-center gap-2 border-b px-3"
+  class="flex h-9 items-center gap-2 border-b ps-3 pe-8"
   data-slot="command-input-wrapper"
 >
   <SearchIcon class="size-4 shrink-0 opacity-50" />
@@ -23,7 +23,7 @@
       className,
     )}
     bind:ref
-    bind:value
     {...restProps}
+    bind:value
   />
 </div>

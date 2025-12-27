@@ -236,7 +236,7 @@
       You
     </div>
   {:else if role === "assistant"}
-    <div class="text-xs font-semibold tracking-wide text-success uppercase">
+    <div class="text-success text-xs font-semibold tracking-wide uppercase">
       AI Teaching Assistant
     </div>
   {/if}
@@ -343,7 +343,7 @@
                   {@const data = dataPart.data as UserDataParts["ask-tutor"]}
                   <div class="flex flex-col gap-2">
                     <div
-                      class="rounded border-l-4 border-info bg-info/10 py-2 pr-3 pl-3 text-sm text-muted-foreground italic"
+                      class="border-info bg-info/10 rounded border-l-4 py-2 pr-3 pl-3 text-sm text-muted-foreground italic"
                     >
                       "{data.selectedText}"
                     </div>
@@ -382,7 +382,7 @@
                 <Card class="bg-muted/50">
                   {#if result?.success}
                     <div class="flex flex-row items-center gap-2">
-                      <SquareCheck class="size-4 text-success" />
+                      <SquareCheck class="text-success size-4" />
                       <span class="text-sm font-medium">
                         Document updated successfully
                       </span>
@@ -414,7 +414,7 @@
                 {@const result = part.output}
                 <Card class="bg-muted/50">
                   <div class="flex flex-row items-center gap-2">
-                    <SquareCheck class="size-4 text-success" />
+                    <SquareCheck class="text-success size-4" />
                     <span class="text-sm font-medium">
                       Content appended to document
                     </span>

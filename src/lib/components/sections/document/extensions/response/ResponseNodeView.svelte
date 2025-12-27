@@ -101,7 +101,7 @@
     <CardHeader class="mt-3 flex flex-row items-start justify-between gap-2">
       <div class="flex flex-1 items-start gap-2">
         {#if isSuccess}
-          <CircleCheck class="mt-0.5 size-5 shrink-0 text-success" />
+          <CircleCheck class="text-success mt-0.5 size-5 shrink-0" />
         {:else if isError}
           <CircleX class="mt-0.5 size-5 shrink-0 text-destructive" />
         {:else if isLoading}
@@ -116,7 +116,7 @@
             </div>
           {/if}
           {#if isSuccess}
-            <div class="text-sm text-success">Correct!</div>
+            <div class="text-success text-sm">Correct!</div>
           {:else if isError}
             <div class="text-sm text-destructive">Try again</div>
           {:else if isLoading}
@@ -129,7 +129,7 @@
     <CardContent class="pt-0">
       {#if hint}
         <div
-          class="mb-3 flex items-start gap-2 rounded border border-warning bg-warning/10 p-2 text-sm text-warning-foreground"
+          class="border-warning bg-warning/10 text-warning-foreground mb-3 flex items-start gap-2 rounded border p-2 text-sm"
         >
           <Lightbulb class="mt-0.5 size-4 shrink-0" />
           <span>{hint}</span>

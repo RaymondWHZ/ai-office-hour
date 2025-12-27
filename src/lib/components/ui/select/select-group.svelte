@@ -5,4 +5,4 @@
     $props();
 </script>
 
-<SelectPrimitive.Group bind:ref data-slot="select-group" {...restProps} />
+<SelectPrimitive.Group data-slot="select-group" {...restProps} />
