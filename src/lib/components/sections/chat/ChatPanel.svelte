@@ -294,10 +294,10 @@
         <div class="flex flex-col gap-3 sm:flex-row">
           {#each START_OPTIONS as option}
             <Card
-              class="cursor-pointer transition-colors select-none hover:bg-accent"
+              class="flex cursor-pointer flex-col gap-3 px-6 transition-colors select-none hover:bg-accent"
               onclick={() => sendStartOption(option.title, option.prompt)}
             >
-              <span class="text-base font-semibold">{option.title}</span>
+              <span class="text-sm font-semibold">{option.title}</span>
               <span class="text-sm text-muted-foreground">
                 {option.description}
               </span>
