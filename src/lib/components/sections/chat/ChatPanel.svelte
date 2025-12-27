@@ -431,7 +431,7 @@
             {:else if part.type === "tool-prompt_student"}
               {@const isLastMessage = messageIndex === chat.messages.length - 1}
               {#if part.state === "input-streaming" || part.state === "input-available"}
-                <Card class="flex flex-row items-center gap-1 bg-muted/50 px-6">
+                <Card class="flex flex-row items-center gap-3 bg-muted/50 px-6">
                   <Loader />
                   <span class="text-sm font-medium">Setting up question...</span
                   >
