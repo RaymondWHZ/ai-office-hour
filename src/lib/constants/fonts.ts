@@ -7,11 +7,8 @@ export interface FontOption {
 
 export const FONT_OPTIONS: FontOption[] = [
   {
-    label: "Space Grotesk",
+    label: "System",
     value: "",
-    stylesheet:
-      "https://fonts.googleapis.com/css2?family=Space+Grotesk&display=swap",
-    displayStyle: "'Space Grotesk', sans-serif",
   },
   {
     label: "Times New Roman",
