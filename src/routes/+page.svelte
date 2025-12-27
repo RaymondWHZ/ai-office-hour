@@ -10,6 +10,7 @@
   import {
     getActiveSession,
     sessionState,
+    switchSession,
     upsertSession,
   } from "$lib/stores/sessionStore.svelte.ts";
   import { untrack } from "svelte";
@@ -83,15 +84,15 @@
 </script>
 
 <div class="flex h-screen flex-col">
-  <div class="border-b px-8 py-6">
-    <div class="flex items-start justify-between gap-4">
-      <div class="flex-1">
-        <h1 class="m-0 mb-1 text-2xl font-bold">AI Office Hour</h1>
-        <p class="m-0 text-sm text-muted-foreground">
-          Upload your assignment and ask questions to understand it better
-        </p>
-      </div>
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+  <div class="border-b px-6 py-3">
+    <div class="flex items-center justify-between gap-4">
+      <button
+        class="cursor-pointer text-left"
+        onclick={() => switchSession(null)}
+      >
+        <h1 class="m-0 text-lg font-semibold">AI Office Hour</h1>
+      </button>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-start">
         <ModelSelector />
         <SessionSwitcher
           onClickNew={() => (currentSession = undefined)}
