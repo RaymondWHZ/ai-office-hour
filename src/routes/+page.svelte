@@ -86,10 +86,8 @@
   <div class="border-b px-8 py-6">
     <div class="flex items-start justify-between gap-4">
       <div class="flex-1">
-        <h1 class="m-0 mb-1 text-2xl font-bold text-gray-900">
-          AI Office Hour
-        </h1>
-        <p class="m-0 text-sm text-gray-600">
+        <h1 class="m-0 mb-1 text-2xl font-bold">AI Office Hour</h1>
+        <p class="m-0 text-sm text-muted-foreground">
           Upload your assignment and ask questions to understand it better
         </p>
       </div>

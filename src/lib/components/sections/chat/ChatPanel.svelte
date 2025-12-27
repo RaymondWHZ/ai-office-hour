@@ -226,15 +226,17 @@
 
 {#snippet role_tag(role: "user" | "assistant" | "system")}
   {#if role === "system"}
-    <div class="text-xs font-semibold tracking-wide text-gray-400 uppercase">
+    <div
+      class="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+    >
       System
     </div>
   {:else if role === "user"}
-    <div class="text-xs font-semibold tracking-wide text-indigo-500 uppercase">
+    <div class="text-xs font-semibold tracking-wide text-primary uppercase">
       You
     </div>
   {:else if role === "assistant"}
-    <div class="text-xs font-semibold tracking-wide text-emerald-600 uppercase">
+    <div class="text-xs font-semibold tracking-wide text-success uppercase">
       AI Teaching Assistant
     </div>
   {/if}
@@ -255,10 +257,10 @@
       }}
       <div class="flex h-full flex-col items-center justify-center gap-8 px-6">
         <div class="text-center">
-          <p class="m-0 mb-2 text-xl font-semibold text-gray-700">
+          <p class="m-0 mb-2 text-xl font-semibold">
             Chat with your AI Teaching Assistant
           </p>
-          <p class="m-0 text-sm text-gray-500">
+          <p class="m-0 text-sm text-muted-foreground">
             Ask a question or choose a learning style to get started
           </p>
         </div>
@@ -283,10 +285,10 @@
           </Button>
         </div>
 
-        <div class="flex items-center gap-4 text-sm text-gray-400">
-          <span class="h-px w-12 bg-gray-200"></span>
+        <div class="flex items-center gap-4 text-sm text-muted-foreground">
+          <span class="h-px w-12 bg-border"></span>
           <span>or choose a preset</span>
-          <span class="h-px w-12 bg-gray-200"></span>
+          <span class="h-px w-12 bg-border"></span>
         </div>
 
         <div class="flex flex-col gap-3 sm:flex-row">
@@ -326,13 +328,13 @@
                   {part.text}
                 {:else if dataType === "start-option" && dataPart && "data" in dataPart}
                   <!-- Start option - show the title -->
-                  <span class="text-gray-600">Selected: </span>
+                  <span class="text-muted-foreground">Selected: </span>
                   <span class="font-medium">
                     {(dataPart.data as UserDataParts["start-option"]).title}
                   </span>
                 {:else if dataType === "follow-up-option" && dataPart && "data" in dataPart}
                   <!-- Follow-up option - show the label -->
-                  <span class="text-gray-600">Selected: </span>
+                  <span class="text-muted-foreground">Selected: </span>
                   <span class="font-medium">
                     {(dataPart.data as UserDataParts["follow-up-option"]).label}
                   </span>
@@ -341,7 +343,7 @@
                   {@const data = dataPart.data as UserDataParts["ask-tutor"]}
                   <div class="flex flex-col gap-2">
                     <div
-                      class="rounded border-l-4 border-blue-300 bg-blue-50 py-2 pr-3 pl-3 text-sm text-gray-600 italic"
+                      class="rounded border-l-4 border-info bg-info/10 py-2 pr-3 pl-3 text-sm text-muted-foreground italic"
                     >
                       "{data.selectedText}"
                     </div>
@@ -351,14 +353,15 @@
                   <!-- Ask help - show formatted -->
                   {@const data = dataPart.data as UserDataParts["ask-help"]}
                   <div class="flex flex-col gap-2">
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-muted-foreground">
                       Help requested for: <span
-                        class="font-medium text-gray-700">{data.question}</span
+                        class="font-medium text-foreground"
+                        >{data.question}</span
                       >
                     </div>
                     {#if data.currentAnswer.trim()}
                       <div class="text-sm">
-                        <span class="text-gray-500">My attempt:</span>
+                        <span class="text-muted-foreground">My attempt:</span>
                         {data.currentAnswer}
                       </div>
                     {/if}
@@ -379,7 +382,7 @@
                 <Card class="bg-muted/50">
                   {#if result?.success}
                     <div class="flex flex-row items-center gap-2">
-                      <SquareCheck class="size-4 text-emerald-600" />
+                      <SquareCheck class="size-4 text-success" />
                       <span class="text-sm font-medium">
                         Document updated successfully
                       </span>
@@ -411,7 +414,7 @@
                 {@const result = part.output}
                 <Card class="bg-muted/50">
                   <div class="flex flex-row items-center gap-2">
-                    <SquareCheck class="size-4 text-emerald-600" />
+                    <SquareCheck class="size-4 text-success" />
                     <span class="text-sm font-medium">
                       Content appended to document
                     </span>
@@ -467,7 +470,7 @@
       }}
 
       <div
-        class="sticky bottom-0 -mx-12 -mt-6 flex flex-col gap-6 bg-linear-to-b from-white/0 from-0% via-white via-10% to-white px-12 pt-6 pb-12"
+        class="sticky bottom-0 -mx-12 -mt-6 flex flex-col gap-6 bg-linear-to-b from-transparent from-0% via-background via-10% to-background px-12 pt-6 pb-12"
       >
         {@render role_tag("user")}
         {#if lastPart?.type === "tool-generate_options" && lastPart.state === "output-available"}

@@ -74,7 +74,7 @@
         </Button>
       </Popover.Trigger>
       <Popover.Content class="w-[280px] shadow-sm" sideOffset={10} align="end">
-        <p class="mb-4 text-sm text-gray-700">
+        <p class="mb-4 text-sm">
           Are you sure you want to delete this session? This action cannot be
           undone.
         </p>

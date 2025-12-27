@@ -28,18 +28,18 @@
 
   // Determine card styling based on status
   const cardClass = () => {
-    if (isSuccess) return "border-green-500 bg-green-50";
-    if (isError) return "border-red-400 bg-red-50";
-    if (isLoading) return "border-gray-400 bg-gray-50";
-    return "border-blue-400 bg-blue-50";
+    if (isSuccess) return "border-success bg-success/10";
+    if (isError) return "border-destructive bg-destructive/10";
+    if (isLoading) return "border-muted-foreground bg-muted";
+    return "border-info bg-info/10";
   };
 
   // Determine content area styling based on status
   const contentClass = () => {
-    if (isSuccess) return "border-green-200 bg-green-50";
-    if (isError) return "border-red-200 bg-white";
-    if (isLoading) return "border-gray-200 bg-gray-100";
-    return "border-gray-200 bg-white";
+    if (isSuccess) return "border-success/50 bg-success/10";
+    if (isError) return "border-destructive/50 bg-background";
+    if (isLoading) return "border-border bg-muted";
+    return "border-border bg-background";
   };
 
   const handleSubmit = async () => {
@@ -91,7 +91,7 @@
 <NodeViewWrapper>
   <Card class="relative w-full gap-2 p-2 {cardClass()}">
     <button
-      class="absolute top-1 right-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+      class="absolute top-1 right-1 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
       onclick={handleDelete}
       title="Remove this response block"
     >
@@ -101,26 +101,26 @@
     <CardHeader class="mt-3 flex flex-row items-start justify-between gap-2">
       <div class="flex flex-1 items-start gap-2">
         {#if isSuccess}
-          <CircleCheck class="mt-0.5 size-5 shrink-0 text-green-600" />
+          <CircleCheck class="mt-0.5 size-5 shrink-0 text-success" />
         {:else if isError}
-          <CircleX class="mt-0.5 size-5 shrink-0 text-red-500" />
+          <CircleX class="mt-0.5 size-5 shrink-0 text-destructive" />
         {:else if isLoading}
           <LoaderCircle
-            class="mt-0.5 size-5 shrink-0 animate-spin text-gray-500"
+            class="mt-0.5 size-5 shrink-0 animate-spin text-muted-foreground"
           />
         {/if}
         <div class="flex-1">
           {#if question && !hideQuestion}
-            <div class="text-base font-semibold text-gray-800">
+            <div class="text-base font-semibold">
               {question}
             </div>
           {/if}
           {#if isSuccess}
-            <div class="text-sm text-green-700">Correct!</div>
+            <div class="text-sm text-success">Correct!</div>
           {:else if isError}
-            <div class="text-sm text-red-600">Try again</div>
+            <div class="text-sm text-destructive">Try again</div>
           {:else if isLoading}
-            <div class="text-sm text-gray-500">Reviewing...</div>
+            <div class="text-sm text-muted-foreground">Reviewing...</div>
           {/if}
         </div>
       </div>
@@ -129,7 +129,7 @@
     <CardContent class="pt-0">
       {#if hint}
         <div
-          class="mb-3 flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-2 text-sm text-amber-800"
+          class="mb-3 flex items-start gap-2 rounded border border-warning bg-warning/10 p-2 text-sm text-warning-foreground"
         >
           <Lightbulb class="mt-0.5 size-4 shrink-0" />
           <span>{hint}</span>

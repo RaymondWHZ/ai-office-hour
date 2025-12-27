@@ -145,7 +145,7 @@
   <!-- Block menu -->
   {#if $editor}
     <div
-      class="sticky top-0 z-10 flex items-center gap-1 bg-linear-to-b from-white via-white via-80% to-transparent px-12 pt-8 pb-12 @min-[48rem]:px-32"
+      class="sticky top-0 z-10 flex items-center gap-1 bg-linear-to-b from-background via-background via-80% to-transparent px-12 pt-8 pb-12 @min-[48rem]:px-32"
     >
       {#snippet toolbarButton(
         Title: string | Component,
@@ -185,7 +185,7 @@
       {@render nodeButton("H2", "heading", { level: 2 })}
       {@render nodeButton("H3", "heading", { level: 3 })}
 
-      <span class="mx-1 text-gray-300">|</span>
+      <span class="mx-1 text-border">|</span>
 
       {@render toolbarButton(
         List,
@@ -198,7 +198,7 @@
         () => $editor?.chain().focus().toggleOrderedList().run(),
       )}
 
-      <span class="mx-1 text-gray-300">|</span>
+      <span class="mx-1 text-border">|</span>
 
       {@render toolbarButton(
         TextQuote,
@@ -211,13 +211,13 @@
         () => $editor?.chain().focus().toggleCodeBlock().run(),
       )}
 
-      <span class="mx-1 text-gray-300">|</span>
+      <span class="mx-1 text-border">|</span>
 
       {@render toolbarButton(SeparatorHorizontal, false, () =>
         $editor?.chain().focus().setHorizontalRule().run(),
       )}
 
-      <span class="mx-1 text-gray-300">|</span>
+      <span class="mx-1 text-border">|</span>
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger>
@@ -249,7 +249,7 @@
   <!-- Bubble menu -->
   {#if $editor}
     <BubbleMenu
-      class="invisible absolute z-20 border bg-white p-1 shadow-sm"
+      class="invisible absolute z-20 rounded-md border bg-popover p-1 text-popover-foreground shadow-sm"
       editor={$editor}
       shouldShow={({ editor, state }) =>
         !state.selection.empty && !editor.isActive("latex")}
@@ -282,7 +282,7 @@
         {@render markButton("Strike", "line-through", "strike")}
         {@render markButton("`Code`", "font-mono pt-1", "code")}
 
-        <span class="mx-1 text-gray-300">|</span>
+        <span class="mx-1 text-border">|</span>
 
         <button
           class="flex items-center gap-1 px-2 outline-none hover:bg-accent disabled:opacity-50"

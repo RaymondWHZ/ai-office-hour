@@ -42,7 +42,7 @@
         sideOffset={4}
       >
         <button
-          class="absolute top-1 right-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+          class="absolute top-1 right-1 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
           onclick={handleDismiss}
           title="Remove this response block"
         >

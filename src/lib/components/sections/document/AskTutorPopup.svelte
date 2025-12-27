@@ -52,7 +52,7 @@
     <div class="flex flex-col gap-3">
       <!-- Selected text preview -->
       <div
-        class="text-md max-h-20 overflow-y-auto border-l-2 border-gray-300 pl-2 text-gray-500"
+        class="text-md max-h-20 overflow-y-auto border-l-2 border-border pl-2 text-muted-foreground"
       >
         {currentSelectedText.length > 100
           ? currentSelectedText.slice(0, 100) + "..."

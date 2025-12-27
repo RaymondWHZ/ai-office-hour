@@ -39,10 +39,10 @@
 
   // Card styling based on state
   const cardClass = $derived.by(() => {
-    if (isSuccess) return "border-green-500 bg-green-50";
-    if (isError) return "border-red-400 bg-red-50";
-    if (submitting) return "border-gray-400 bg-gray-50";
-    return "border-blue-400 bg-blue-50";
+    if (isSuccess) return "border-success bg-success/10";
+    if (isError) return "border-destructive bg-destructive/10";
+    if (submitting) return "border-muted-foreground bg-muted";
+    return "border-info bg-info/10";
   });
 
   // For single-choice, data.answer stores the value (for selection tracking)
@@ -150,9 +150,9 @@
 
 {#if isDismissed}
   <Card
-    class="flex flex-row items-center justify-between gap-3 border-gray-300 bg-gray-50"
+    class="flex flex-row items-center justify-between gap-3 border-border bg-muted"
   >
-    <span class="text-sm text-gray-500">Question skipped</span>
+    <span class="text-sm text-muted-foreground">Question skipped</span>
     {#if isLastMessage}
       <Button variant="ghost" size="sm" onclick={() => (data.state = "")}>
         <RotateCcw class="mr-1 size-4" />
@@ -164,7 +164,7 @@
   <Card class="relative w-full {cardClass}">
     {#if !isSuccess && isActive}
       <button
-        class="absolute top-2 right-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+        class="absolute top-2 right-2 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
         onclick={() => (data.state = "dismissed")}
         title="Skip this question"
       >
@@ -175,24 +175,24 @@
     <CardHeader class="pr-10 pb-2">
       <div class="flex items-start gap-2">
         {#if isSuccess}
-          <CircleCheck class="mt-0.5 size-5 shrink-0 text-green-600" />
+          <CircleCheck class="mt-0.5 size-5 shrink-0 text-success" />
         {:else if submitting}
           <LoaderCircle
-            class="mt-0.5 size-5 shrink-0 animate-spin text-gray-500"
+            class="mt-0.5 size-5 shrink-0 animate-spin text-muted-foreground"
           />
         {:else if isError}
-          <CircleX class="mt-0.5 size-5 shrink-0 text-red-500" />
+          <CircleX class="mt-0.5 size-5 shrink-0 text-destructive" />
         {/if}
         <div class="flex-1">
-          <div class="text-base font-semibold text-gray-800">
+          <div class="text-base font-semibold">
             <Markdown value={data.question} />
           </div>
           {#if isSuccess}
-            <div class="text-sm text-green-700">Correct!</div>
+            <div class="text-sm text-success">Correct!</div>
           {:else if isError}
-            <div class="text-sm text-red-600">Try again</div>
+            <div class="text-sm text-destructive">Try again</div>
           {:else if submitting}
-            <div class="text-sm text-gray-500">Reviewing...</div>
+            <div class="text-sm text-muted-foreground">Reviewing...</div>
           {/if}
         </div>
       </div>
@@ -201,7 +201,7 @@
     <CardContent class="pt-0">
       {#if (data.hint && !isSuccess) || errorHint}
         <div
-          class="mb-3 flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-2 text-sm text-amber-800"
+          class="mb-3 flex items-start gap-2 rounded border border-warning bg-warning/10 p-2 text-sm text-warning-foreground"
         >
           <Lightbulb class="mt-0.5 size-4 shrink-0" />
           <span><Markdown value={errorHint || data.hint || ""} /></span>
@@ -210,9 +210,7 @@
 
       {#if isSuccess}
         <!-- Show the answer that was submitted -->
-        <div
-          class="rounded border border-green-200 bg-green-50 p-3 text-gray-700"
-        >
+        <div class="rounded border border-success bg-success/10 p-3">
           <Markdown value={getDisplayAnswer()} />
         </div>
       {:else if data.type === "text"}
