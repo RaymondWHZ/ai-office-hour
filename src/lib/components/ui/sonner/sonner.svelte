@@ -1,4 +1,10 @@
 <script lang="ts">
+  import CircleCheckIcon from "@lucide/svelte/icons/circle-check";
+  import InfoIcon from "@lucide/svelte/icons/info";
+  import Loader2Icon from "@lucide/svelte/icons/loader-2";
+  import OctagonXIcon from "@lucide/svelte/icons/octagon-x";
+  import TriangleAlertIcon from "@lucide/svelte/icons/triangle-alert";
+
   import {
     Toaster as Sonner,
     type ToasterProps as SonnerProps,
@@ -11,21 +17,21 @@
 <Sonner
   theme={mode.current}
   class="toaster group"
-  toastOptions={{
-    classes: {
-      toast:
-        "h-auto w-full p-4 bg-background border-2 border-border group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border flex items-center relative",
-      description:
-        "group-[.toast]:!text-muted-foreground ml-2 text-sm font-sans",
-      actionButton:
-        "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground py-1 px-2 bg-background border-border shadow-md border-2 ml-auto h-fit min-w-fit transition-all hover:translate-y-1 hover:shadow-none font-medium",
-      cancelButton:
-        "group-[.toast]:bg-muted group-[.toast]:text-foreground py-1 px-2 text-sm bg-background border-border shadow-md border-2 ml-auto h-fit min-w-fit transition-all hover:translate-y-1 hover:shadow-none font-medium",
-      title: "ml-2 font-sans font-medium",
-      closeButton:
-        "absolute bg-background border border-border shadow-sm -top-1 -left-1 p-0.5 transition-all hover:translate-y-0.5 hover:shadow-none",
-    },
-    unstyled: true,
-  }}
+  style="--normal-bg: var(--color-popover); --normal-text: var(--color-popover-foreground); --normal-border: var(--color-border);"
   {...restProps}
-/>
+  >{#snippet loadingIcon()}
+    <Loader2Icon class="size-4 animate-spin" />
+  {/snippet}
+  {#snippet successIcon()}
+    <CircleCheckIcon class="size-4" />
+  {/snippet}
+  {#snippet errorIcon()}
+    <OctagonXIcon class="size-4" />
+  {/snippet}
+  {#snippet infoIcon()}
+    <InfoIcon class="size-4" />
+  {/snippet}
+  {#snippet warningIcon()}
+    <TriangleAlertIcon class="size-4" />
+  {/snippet}
+</Sonner>

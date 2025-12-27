@@ -1,6 +1,6 @@
 <script lang="ts">
   import { NodeViewContent, NodeViewWrapper } from "svelte-tiptap";
-  import * as Tooltip from "$lib/components/ui/tooltip";
+  import * as HoverCard from "$lib/components/ui/hover-card";
   import Markdown from "$lib/components/renderers/Markdown.svelte";
   import { X } from "@lucide/svelte";
   import type { NodeViewProps } from "@tiptap/core";
@@ -28,31 +28,26 @@
 </script>
 
 <NodeViewWrapper as="span">
-  <Tooltip.Provider delayDuration={100}>
-    <Tooltip.Root>
-      <Tooltip.Trigger>
-        {#snippet child({ props })}
-          <span {...props} class="bg-accent">
-            <NodeViewContent as="span" />
-          </span>
-        {/snippet}
-      </Tooltip.Trigger>
-      <Tooltip.Content
-        class="relative max-w-xs p-4 text-base shadow-sm"
-        sideOffset={4}
+  <HoverCard.Root openDelay={100} closeDelay={100}>
+    <HoverCard.Trigger>
+      {#snippet child({ props })}
+        <span {...props} class="bg-comment text-comment-foreground">
+          <NodeViewContent as="span" />
+        </span>
+      {/snippet}
+    </HoverCard.Trigger>
+    <HoverCard.Content class="relative max-w-xs p-4 text-base" sideOffset={4}>
+      <button
+        class="absolute top-1 right-1 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+        onclick={handleDismiss}
+        title="Remove this comment"
       >
-        <button
-          class="absolute top-1 right-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
-          onclick={handleDismiss}
-          title="Remove this response block"
-        >
-          <X class="size-4" />
-        </button>
-        {#if title}
-          <div class="mb-1 text-lg font-semibold">{title}</div>
-        {/if}
-        <Markdown value={comment} />
-      </Tooltip.Content>
-    </Tooltip.Root>
-  </Tooltip.Provider>
+        <X class="size-4" />
+      </button>
+      {#if title}
+        <div class="mb-1 text-lg font-semibold">{title}</div>
+      {/if}
+      <Markdown value={comment} />
+    </HoverCard.Content>
+  </HoverCard.Root>
 </NodeViewWrapper>

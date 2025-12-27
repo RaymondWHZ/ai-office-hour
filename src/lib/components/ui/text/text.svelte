@@ -2,19 +2,20 @@
   import { cn, type WithElementRef } from "$lib/utils.js";
   import type { HTMLAttributes } from "svelte/elements";
   import { type VariantProps, tv } from "tailwind-variants";
+
   export const textVariants = tv({
-    base: "font-head",
+    base: "",
     variants: {
       as: {
-        p: "font-sans text-base",
-        li: "font-sans text-base",
-        a: "font-sans text-base hover:underline underline-offset-2 decoration-primary",
-        h1: "text-4xl lg:text-5xl font-bold",
-        h2: "text-3xl lg:text-4xl font-semibold",
-        h3: "text-2xl font-medium",
-        h4: "text-xl font-normal",
-        h5: "text-lg font-normal",
-        h6: "text-base font-normal",
+        p: "text-base",
+        li: "text-base",
+        a: "text-base hover:underline underline-offset-4",
+        h1: "text-4xl lg:text-5xl font-bold tracking-tight",
+        h2: "text-3xl lg:text-4xl font-semibold tracking-tight",
+        h3: "text-2xl font-semibold tracking-tight",
+        h4: "text-xl font-semibold tracking-tight",
+        h5: "text-lg font-medium",
+        h6: "text-base font-medium",
       },
     },
     defaultVariants: {
